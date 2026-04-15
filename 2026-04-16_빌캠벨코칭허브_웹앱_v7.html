@@ -558,8 +558,10 @@ function App(){
   const[usr,setUsr]=useState(null);
   const[recs,setRecs]=useState([]);
   const[selRec,setSelRec]=useState(null);
+  const[allUsers,setAllUsers]=useState([]);
+  const[appLoading,setAppLoading]=useState(true);
   const[isDesktop,setIsDesktop]=useState(typeof window!=='undefined'?window.matchMedia('(min-width:768px)').matches:false);
-  
+
   useEffect(()=>{
     if(typeof window==='undefined')return;
     const mq=window.matchMedia('(min-width:768px)');
@@ -567,31 +569,44 @@ function App(){
     mq.addListener(handler);
     return()=>mq.removeListener(handler);
   },[]);
-  
+
   useEffect(()=>{
-    const loadData=async()=>{
-      const u=await sbGetUser();
-      if(u)setUsr(u);
-    };
-    loadData();
+    (async()=>{
+      try{const u=await sbGetAllUsers();setAllUsers(u||[]);}catch(e){console.error('사용자 목록 로딩 실패:',e)}
+      setAppLoading(false);
+    })();
   },[]);
-  
+
   useEffect(()=>{
     if(!usr)return;
-    const loadRecs=async()=>{
-      const r=await sbLoadRecords();
+    (async()=>{
+      const r=await sbLoadRecords(usr.id);
       setRecs(r||[]);
-    };
-    loadRecs();
+    })();
   },[usr]);
-  
+
+  async function handleLogin(userId){
+    const u=await sbGetUser(userId);
+    if(u){
+      const today=new Date().toISOString().slice(0,10);
+      if(!u.loginDates?.includes(today)){u.loginDates=[...(u.loginDates||[]),today];u.lastLogin=today;await sbUpdateUser(u);}
+      setUsr(u);
+    }
+  }
+  async function handleRegister(appUser){
+    const saved=await sbRegister(appUser);
+    setAllUsers(prev=>[...prev,saved]);
+    setUsr(saved);
+  }
+
   const navTo=(s)=>{setScr(s);setSelRec(null);};
-  const updateUsr=(d)=>{setUsr({...usr,...d});};
+  const updateUsr=async(d)=>{const updated={...usr,...d};setUsr(updated);await sbUpdateUser(updated);};
   const addRec=(r)=>{setRecs([r,...recs]);};
-  const rmRec=(id)=>{setRecs(recs.filter(r=>r.id!==id));};
+  const rmRec=async(id)=>{await sbDeleteRecord(id);setRecs(recs.filter(r=>r.id!==id));};
   const updRec=(id,d)=>{setRecs(recs.map(r=>r.id===id?{...r,...d}:r));};
-  
-  if(!usr)return<AuthScreen onLogin={setUsr}/>;
+
+  if(appLoading)return<div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',background:'linear-gradient(135deg,#667eea 0%,#764ba2 100%)',color:'#fff',fontSize:20}}>로딩 중...</div>;
+  if(!usr)return<AuthScreen users={allUsers} onLogin={handleLogin} onRegister={handleRegister}/>;
   
   const sidebarItems=[
     {icon:'🏠',label:'대시보드',scr:'home'},
@@ -671,16 +686,16 @@ function App(){
   
   let screenComp=null;
   switch(scr){
-    case'home':screenComp=<HomeScreen usr={usr} recs={recs} onNav={navTo} isDesktop={isDesktop}/>;break;
-    case'records':screenComp=<RecordsScreen recs={recs} selRec={selRec} setSelRec={setSelRec} onDel={rmRec} onNav={navTo} isDesktop={isDesktop}/>;break;
-    case'history':screenComp=<HistoryScreen usr={usr} recs={recs} isDesktop={isDesktop}/>;break;
-    case'questions':screenComp=<QuestionsScreen isDesktop={isDesktop}/>;break;
-    case'guide':screenComp=<GuideScreen isDesktop={isDesktop}/>;break;
-    case'grow':screenComp=<GrowScreen isDesktop={isDesktop}/>;break;
-    case'troubleshoot':screenComp=<TroubleshootScreen isDesktop={isDesktop}/>;break;
-    case'mypage':screenComp=<MyPage usr={usr} upd={updateUsr} onLogout={()=>setUsr(null)} isDesktop={isDesktop}/>;break;
-    case'form':screenComp=<RecordForm usr={usr} selRec={selRec} onSave={async(r)=>{await sbSaveRecord(r);if(selRec)updRec(selRec.id,r);else addRec(r);setScr('records');}} onCancel={()=>{setSelRec(null);setScr('records');}}/>;break;
-    default:screenComp=<HomeScreen usr={usr} recs={recs} onNav={navTo} isDesktop={isDesktop}/>;
+    case'home':screenComp=<HomeScreen me={usr} records={recs} nav={navTo}/>;break;
+    case'records':screenComp=<RecordsScreen records={recs} detail={selRec} setDetail={setSelRec} onNew={()=>navTo('form')} onEdit={(r)=>{setSelRec(r);navTo('form')}} onDelete={rmRec} nav={navTo}/>;break;
+    case'history':screenComp=<HistoryScreen records={recs} nav={navTo}/>;break;
+    case'questions':screenComp=<QuestionsScreen nav={navTo}/>;break;
+    case'guide':screenComp=<GuideScreen nav={navTo}/>;break;
+    case'grow':screenComp=<GrowScreen nav={navTo}/>;break;
+    case'troubleshoot':screenComp=<TroubleshootScreen nav={navTo}/>;break;
+    case'mypage':screenComp=<MyPage me={usr} onUpdate={updateUsr} onLogout={()=>setUsr(null)} onBack={()=>navTo('home')}/>;break;
+    case'form':screenComp=<RecordForm rec={selRec} onSave={async(r)=>{const saved=await sbSaveRecord(usr.id,r);if(selRec)updRec(selRec.id,saved);else addRec(saved);setScr('records');}} onBack={()=>{setSelRec(null);setScr('records');}}/>;break;
+    default:screenComp=<HomeScreen me={usr} records={recs} nav={navTo}/>;
   }
   
   return(
