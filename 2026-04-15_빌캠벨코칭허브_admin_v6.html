@@ -7,6 +7,7 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <style>
         * {
             margin: 0;
@@ -614,6 +615,29 @@
         const ADMIN_NAME = "박건우짱";
         const ADMIN_PASSWORD = "1111";
 
+        // Supabase 연동
+        const SUPA_URL = 'https://ailyazoaqsdawwbbxbhn.supabase.co';
+        const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpbHlhem9hcXNkYXd3YmJ4YmhuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNzU3NTYsImV4cCI6MjA5MTc1MTc1Nn0.PtmUJkZWsRJ_fKWWEUQUrA7kc1xaCvwVaj48HKNJIlA';
+        const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+        async function loadFromSupabase() {
+            const [{ data: uRows }, { data: rRows }] = await Promise.all([
+                sb.from('users').select('*'),
+                sb.from('records').select('*')
+            ]);
+            const users = (uRows || []).map(row => ({
+                id: row.id, name: row.name, pw: row.pw,
+                ...(row.profile || {}),
+                loginDates: row.login_dates || [],
+                teamSize: (row.profile || {}).memberCount || 0
+            }));
+            const records = (rRows || []).map(row => ({
+                id: row.id, userId: row.user_id, date: row.date,
+                ...(row.rec_data || {})
+            }));
+            return { users, records };
+        }
+
         const BADGES = [
             { id: "first", name: "첫 코칭", req: r => r.length >= 1 },
             { id: "three", name: "3회 달성", req: r => r.length >= 3 },
@@ -728,13 +752,12 @@
             const [sortBy, setSortBy] = useState('name');
 
             useEffect(() => {
-                const loadData = () => {
-                    const stored = localStorage.getItem('bc_v5');
-                    if (stored) {
-                        setData(JSON.parse(stored));
-                    }
+                const loadData = async () => {
+                    try {
+                        const d = await loadFromSupabase();
+                        setData(d);
+                    } catch(e) { console.error('Admin Supabase 오류:', e); }
                 };
-
                 loadData();
                 const interval = setInterval(loadData, 30000);
                 return () => clearInterval(interval);
@@ -919,6 +942,10 @@
                                                 <div className="detail-item">
                                                     <span className="detail-label">이름</span>
                                                     <span className="detail-value">{selectedUser.name}</span>
+                                                </div>
+                                                <div className="detail-item">
+                                                    <span className="detail-label">비밀번호</span>
+                                                    <span className="detail-value" style={{fontFamily:'monospace',background:'#1a1a2e',padding:'2px 8px',borderRadius:6,letterSpacing:1}}>{selectedUser.pw}</span>
                                                 </div>
                                                 <div className="detail-item">
                                                     <span className="detail-label">회사</span>

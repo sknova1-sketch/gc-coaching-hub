@@ -633,8 +633,8 @@ return(
     <button className={`auth-tab ${tab==='register'?'on':''}`} onClick={()=>{setTab('register');setErr('')}}>회원가입</button>
   </div>
   {tab==='login'?(<>
-    <div className="fg"><label>이름</label><input value={lf.name} onChange={sl(setLf,'name')} placeholder="예) 박건우" onKeyDown={e=>e.key==='Enter'&&doLogin()}/></div>
-    <div className="fg"><label>비밀번호</label><div className="pw-wrap"><input type={showPw?"text":"password"} value={lf.pw} onChange={e=>{sl(setLf,"pw")(e);}} placeholder="비밀번호 입력"/><button className="pw-toggle" onClick={()=>setShowPw(!showPw)} type="button">{showPw?"👁":"👁‍🗨"}</button></div></div>
+    <div className="fg"><label>이름</label><input value={lf.name} onChange={sl(setLf,'name')} placeholder="예) 박건우" onKeyDown={e=>e.key==='Enter'&&doLogin()} autoCapitalize="none" autoCorrect="off" autoComplete="username"/></div>
+    <div className="fg"><label>비밀번호</label><div className="pw-wrap"><input type={showPw?"text":"password"} value={lf.pw} onChange={e=>{sl(setLf,"pw")(e);}} placeholder="비밀번호 입력" autoCapitalize="none" autoCorrect="off" autoComplete="current-password"/><button className="pw-toggle" onClick={()=>setShowPw(!showPw)} type="button">{showPw?"👁":"👁‍🗨"}</button></div></div>
     {err&&<p className="err">⚠ {err}</p>}
     <button className="btn btn-primary" onClick={doLogin} disabled={authLoading}>{authLoading?'로그인 중...':'로그인 →'}</button>
   </>):(<>
