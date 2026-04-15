@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>빌캠벨 코칭 허브 · Admin Console</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #1a1a2e;
+            color: #f5f5f5;
+            font-family: system-ui, -apple-system, 'Noto Sans KR', sans-serif;
+            line-height: 1.6;
+        }
+
+        .login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+        }
+
+        .login-box {
+            background: #16213e;
+            border-radius: 16px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        .login-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            text-align: center;
+            color: #f5f5f5;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .login-input {
+            background: #1a1a2e;
+            border: 1px solid #0f3460;
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: #f5f5f5;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .login-input:focus {
+            outline: none;
+            border-color: #e94560;
+            box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.1);
+        }
+
+        .login-button {
+            background: #e94560;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .login-button:hover {
+            background: #d63550;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(233, 69, 96, 0.3);
+        }
+
+        .login-error {
+            color: #ff6b6b;
+            font-size: 12px;
+            text-align: center;
+            margin-top: 10px;
+            min-height: 16px;
+        }
+
+        .dashboard-container {
+            background: #1a1a2e;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .dashboard-header {
+            background: #16213e;
+            border-radius: 16px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #f5f5f5;
+        }
+
+        .header-user {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logout-button {
+            background: #e94560;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .logout-button:hover {
+            background: #d63550;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .summary-card {
+            background: #16213e;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        .card-icon {
+            font-size: 28px;
+            margin-bottom: 12px;
+        }
+
+        .card-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #e94560;
+            margin-bottom: 8px;
+        }
+
+        .card-label {
+            font-size: 13px;
+            color: #a0a0b0;
+        }
+
+        .tab-container {
+            background: #16213e;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .tab-buttons {
+            display: flex;
+            background: #0f3460;
+            border-bottom: 1px solid #1a2a3e;
+        }
+
+        .tab-button {
+            flex: 1;
+            background: none;
+            border: none;
+            color: #a0a0b0;
+            padding: 16px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .tab-button.active {
+            color: #e94560;
+            border-bottom: 3px solid #e94560;
+            background: #16213e;
+        }
+
+        .tab-button:hover {
+            color: #f5f5f5;
+        }
+
+        .tab-content {
+            padding: 24px;
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .user-list-panel {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 24px;
+            height: 600px;
+        }
+
+        .user-list-left {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            border-right: 1px solid #0f3460;
+            padding-right: 24px;
+        }
+
+        .search-input {
+            background: #1a1a2e;
+            border: 1px solid #0f3460;
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: #f5f5f5;
+            font-size: 13px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #e94560;
+        }
+
+        .sort-select {
+            background: #1a1a2e;
+            border: 1px solid #0f3460;
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: #f5f5f5;
+            font-size: 13px;
+        }
+
+        .sort-select:focus {
+            outline: none;
+            border-color: #e94560;
+        }
+
+        .user-items {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .user-item {
+            background: #1a1a2e;
+            border-radius: 10px;
+            padding: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid #0f3460;
+        }
+
+        .user-item:hover {
+            border-color: #e94560;
+            background: #0f3460;
+        }
+
+        .user-item.active {
+            border-color: #e94560;
+            background: #0f3460;
+        }
+
+        .user-item-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #f5f5f5;
+            margin-bottom: 8px;
+        }
+
+        .user-item-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .badge-tiny {
+            background: #e94560;
+            color: white;
+            font-size: 10px;
+            padding: 3px 6px;
+            border-radius: 4px;
+        }
+
+        .user-item-records {
+            font-size: 12px;
+            color: #a0a0b0;
+            margin-top: 8px;
+        }
+
+        .user-detail {
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .detail-section {
+            background: #1a1a2e;
+            border-radius: 10px;
+            padding: 16px;
+        }
+
+        .detail-title {
+            font-weight: 600;
+            font-size: 13px;
+            color: #a0a0b0;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #0f3460;
+            font-size: 13px;
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: #a0a0b0;
+        }
+
+        .detail-value {
+            color: #f5f5f5;
+            font-weight: 500;
+        }
+
+        .badge-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .badge-item {
+            background: linear-gradient(135deg, #e94560 0%, #d63550 100%);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .monthly-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            height: 120px;
+            margin-top: 12px;
+        }
+
+        .monthly-bar {
+            flex: 1;
+            background: linear-gradient(to top, #e94560, #ff7a8f);
+            border-radius: 4px 4px 0 0;
+            min-height: 4px;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .monthly-bar:hover {
+            opacity: 0.8;
+        }
+
+        .recent-records {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .record-item {
+            background: #1a1a2e;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            border-left: 3px solid #e94560;
+        }
+
+        .record-item-date {
+            color: #a0a0b0;
+            margin-bottom: 4px;
+        }
+
+        .record-item-member {
+            color: #f5f5f5;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .record-item-topic {
+            color: #4ecca3;
+            font-size: 11px;
+        }
+
+        .ranking-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .ranking-top3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .ranking-card {
+            background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            border: 2px solid #e94560;
+            box-shadow: 0 8px 32px rgba(233, 69, 96, 0.2);
+        }
+
+        .ranking-medal {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .ranking-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #f5f5f5;
+            margin-bottom: 8px;
+        }
+
+        .ranking-company {
+            font-size: 12px;
+            color: #a0a0b0;
+            margin-bottom: 16px;
+        }
+
+        .ranking-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .ranking-stat {
+            background: #1a1a2e;
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        .ranking-stat-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #e94560;
+        }
+
+        .ranking-stat-label {
+            font-size: 10px;
+            color: #a0a0b0;
+            text-transform: uppercase;
+        }
+
+        .ranking-score {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e94560;
+        }
+
+        .ranking-rows {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .ranking-row {
+            background: #1a1a2e;
+            border-radius: 10px;
+            padding: 16px;
+            display: grid;
+            grid-template-columns: 50px 1fr 100px 100px 80px 80px;
+            gap: 16px;
+            align-items: center;
+            border-left: 3px solid #0f3460;
+        }
+
+        .ranking-row.top {
+            border-left-color: #e94560;
+        }
+
+        .rank-number {
+            font-weight: bold;
+            color: #e94560;
+            font-size: 16px;
+        }
+
+        .ranking-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .ranking-info-name {
+            font-weight: 600;
+            color: #f5f5f5;
+        }
+
+        .ranking-info-company {
+            font-size: 11px;
+            color: #a0a0b0;
+        }
+
+        .ranking-cell {
+            font-size: 13px;
+            color: #f5f5f5;
+            text-align: center;
+        }
+
+        .target-bar {
+            background: #0f3460;
+            border-radius: 4px;
+            overflow: hidden;
+            height: 20px;
+            margin-top: 4px;
+        }
+
+        .target-fill {
+            background: linear-gradient(90deg, #4ecca3, #45c697);
+            height: 100%;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #a0a0b0;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1a1a2e;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #0f3460;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #e94560;
+        }
+
+        @media (max-width: 1400px) {
+            .summary-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 1000px) {
+            .user-list-panel {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .user-list-left {
+                border-right: none;
+                padding-right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const ADMIN_NAME = "박건우짱";
+        const ADMIN_PASSWORD = "1111";
+
+        const BADGES = [
+            { id: "first", name: "첫 코칭", req: r => r.length >= 1 },
+            { id: "three", name: "3회 달성", req: r => r.length >= 3 },
+            { id: "five", name: "5회 달성", req: r => r.length >= 5 },
+            { id: "ten", name: "10회 달성", req: r => r.length >= 10 },
+            { id: "twenty", name: "20회 달성", req: r => r.length >= 20 },
+            { id: "listener", name: "경청 마스터", req: r => r.length >= 3 && avg(r.map(x => x.talkRatio)) <= 30 },
+            { id: "deep", name: "심층 코치", req: r => r.filter(x => (x.keyTopic || '').length > 30).length >= 5 },
+            { id: "members3", name: "3인 케어", req: r => new Set(r.map(x => x.member)).size >= 3 },
+            { id: "members5", name: "5인 케어", req: r => new Set(r.map(x => x.member)).size >= 5 },
+            { id: "monthly3", name: "월 3회", req: r => getMaxMonthly(r) >= 3 },
+            { id: "monthly5", name: "월 5회", req: r => getMaxMonthly(r) >= 5 },
+            { id: "streak2", name: "2개월 연속", req: r => getConsecMonths(r) >= 2 },
+            { id: "action", name: "액션 관리자", req: r => r.filter(x => x.nextAction).length >= 5 },
+            { id: "quick", name: "스피드 코치", req: r => r.filter(x => x.duration === '10분').length >= 3 },
+            { id: "long", name: "딥 다이브", req: r => r.filter(x => x.duration === '30분+').length >= 3 },
+        ];
+
+        function avg(a) { return a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0; }
+        function getMaxMonthly(r) {
+            const c = {};
+            r.forEach(x => {
+                const k = x.date.slice(0, 7);
+                c[k] = (c[k] || 0) + 1;
+            });
+            return Math.max(0, ...Object.values(c));
+        }
+        function getConsecMonths(r) {
+            const ms = [...new Set(r.map(x => x.date.slice(0, 7)))].sort();
+            let mx = 1, cur = 1;
+            for (let i = 1; i < ms.length; i++) {
+                const [py, pm] = ms[i - 1].split('-').map(Number);
+                const [cy, cm] = ms[i].split('-').map(Number);
+                if ((cy * 12 + cm) - (py * 12 + pm) === 1) {
+                    cur++;
+                    mx = Math.max(mx, cur);
+                } else cur = 1;
+            }
+            return mx;
+        }
+
+        function getEarnedBadges(records) {
+            return BADGES.filter(b => b.req(records)).map(b => b.name);
+        }
+
+        function getRankingScore(records, badges) {
+            const count = records.length;
+            const goodListeners = records.filter(x => x.talkRatio <= 30).length;
+            const thisMonth = records.filter(x => x.date.slice(0, 7) === new Date().toISOString().slice(0, 7)).length;
+            const maxMonthly = getMaxMonthly(records);
+            const loginDays = records.length > 0 ? 7 + records.length : 0;
+
+            let score = count * 10 + goodListeners * 5 + badges.length * 15;
+            if (maxMonthly >= 3) score += 30;
+            score += loginDays * 20;
+
+            return score;
+        }
+
+        function LoginPage({ onLogin }) {
+            const [name, setName] = useState('');
+            const [password, setPassword] = useState('');
+            const [error, setError] = useState('');
+
+            const handleLogin = () => {
+                if (name === ADMIN_NAME && password === ADMIN_PASSWORD) {
+                    onLogin();
+                } else {
+                    setError('관리자 정보가 일치하지 않습니다');
+                    setPassword('');
+                }
+            };
+
+            const handleKeyPress = (e) => {
+                if (e.key === 'Enter') handleLogin();
+            };
+
+            return (
+                <div className="login-container">
+                    <div className="login-box">
+                        <div className="login-title">🏅 빌캠벨 코칭 허브</div>
+                        <div className="login-form">
+                            <input
+                                type="text"
+                                className="login-input"
+                                placeholder="관리자명"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                onKeyPress={handleKeyPress}
+                            />
+                            <input
+                                type="password"
+                                className="login-input"
+                                placeholder="비밀번호"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                onKeyPress={handleKeyPress}
+                            />
+                            <button className="login-button" onClick={handleLogin}>로그인</button>
+                            <div className="login-error">{error}</div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function Dashboard({ onLogout }) {
+            const [data, setData] = useState({ users: [], records: [] });
+            const [activeTab, setActiveTab] = useState('users');
+            const [selectedUserId, setSelectedUserId] = useState(null);
+            const [searchTerm, setSearchTerm] = useState('');
+            const [sortBy, setSortBy] = useState('name');
+
+            useEffect(() => {
+                const loadData = () => {
+                    const stored = localStorage.getItem('bc_v5');
+                    if (stored) {
+                        setData(JSON.parse(stored));
+                    }
+                };
+
+                loadData();
+                const interval = setInterval(loadData, 30000);
+                return () => clearInterval(interval);
+            }, []);
+
+            const getFilteredAndSortedUsers = () => {
+                let filtered = data.users.filter(u => u.name.includes(searchTerm));
+
+                filtered.sort((a, b) => {
+                    const aRecords = data.records.filter(r => r.userId === a.id);
+                    const bRecords = data.records.filter(r => r.userId === b.id);
+                    const aBadges = getEarnedBadges(aRecords).length;
+                    const bBadges = getEarnedBadges(bRecords).length;
+
+                    if (sortBy === 'name') return a.name.localeCompare(b.name, 'ko');
+                    if (sortBy === 'records') return bRecords.length - aRecords.length;
+                    if (sortBy === 'badges') return bBadges - aBadges;
+                    return 0;
+                });
+
+                return filtered;
+            };
+
+            const selectedUser = data.users.find(u => u.id === selectedUserId);
+            const userRecords = selectedUserId ? data.records.filter(r => r.userId === selectedUserId) : [];
+            const userBadges = getEarnedBadges(userRecords);
+
+            const summaryStats = {
+                totalUsers: data.users.length,
+                totalRecords: data.records.length,
+                totalBadges: data.users.reduce((sum, u) => {
+                    const uRecords = data.records.filter(r => r.userId === u.id);
+                    return sum + getEarnedBadges(uRecords).length;
+                }, 0),
+                monthlyActivityRate: data.users.length > 0 ? (
+                    (data.users.filter(u => {
+                        const uRecords = data.records.filter(r => r.userId === u.id);
+                        return uRecords.some(r => r.date.slice(0, 7) === new Date().toISOString().slice(0, 7));
+                    }).length / data.users.length) * 100
+                ).toFixed(1) : 0
+            };
+
+            const getMonthlyData = () => {
+                const months = {};
+                userRecords.forEach(r => {
+                    const m = r.date.slice(0, 7);
+                    months[m] = (months[m] || 0) + 1;
+                });
+                const allMonths = [];
+                const now = new Date();
+                for (let i = 11; i >= 0; i--) {
+                    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                    const k = d.toISOString().slice(0, 7);
+                    allMonths.push(months[k] || 0);
+                }
+                const maxVal = Math.max(...allMonths) || 1;
+                return allMonths.map(v => (v / maxVal) * 100);
+            };
+
+            const getUserActivitySummary = () => {
+                const loginDays = userRecords.length;
+                const thisMonth = userRecords.filter(r => r.date.slice(0, 7) === new Date().toISOString().slice(0, 7)).length;
+                const avgTalkRatio = userRecords.length > 0 ? (userRecords.reduce((sum, r) => sum + (r.talkRatio || 0), 0) / userRecords.length).toFixed(1) : 0;
+                const targetMonthly = selectedUser ? (selectedUser.level === '상급' ? selectedUser.teamSize * 4 : selectedUser.level === '중급' ? selectedUser.teamSize * 2 : selectedUser.teamSize) : 0;
+                const monthlyTargetPercent = targetMonthly > 0 ? ((thisMonth / targetMonthly) * 100).toFixed(1) : 0;
+
+                return { loginDays, thisMonth, avgTalkRatio, monthlyTargetPercent, targetMonthly };
+            };
+
+            const activitySummary = getUserActivitySummary();
+            const monthlyHeights = getMonthlyData();
+
+            const getRankingData = () => {
+                return data.users.map(u => {
+                    const uRecords = data.records.filter(r => r.userId === u.id);
+                    const badges = getEarnedBadges(uRecords);
+                    const score = getRankingScore(uRecords, badges);
+                    const targetMonthly = u.level === '상급' ? u.teamSize * 4 : u.level === '중급' ? u.teamSize * 2 : u.teamSize;
+                    return { user: u, records: uRecords, badges, score, targetMonthly };
+                }).sort((a, b) => b.score - a.score);
+            };
+
+            const rankingData = getRankingData();
+
+            return (
+                <div className="dashboard-container">
+                    <div className="dashboard-header">
+                        <div className="header-title">🏅 빌캠벨 코칭 허브 · Admin Console</div>
+                        <div className="header-user">
+                            <span>{ADMIN_NAME}</span>
+                            <button className="logout-button" onClick={onLogout}>로그아웃</button>
+                        </div>
+                    </div>
+
+                    <div className="summary-cards">
+                        <div className="summary-card">
+                            <div className="card-icon">👥</div>
+                            <div className="card-value">{summaryStats.totalUsers}</div>
+                            <div className="card-label">총 가입자</div>
+                        </div>
+                        <div className="summary-card">
+                            <div className="card-icon">📝</div>
+                            <div className="card-value">{summaryStats.totalRecords}</div>
+                            <div className="card-label">총 기록 수</div>
+                        </div>
+                        <div className="summary-card">
+                            <div className="card-icon">🏅</div>
+                            <div className="card-value">{summaryStats.totalBadges}</div>
+                            <div className="card-label">총 배지 수</div>
+                        </div>
+                        <div className="summary-card">
+                            <div className="card-icon">📊</div>
+                            <div className="card-value">{summaryStats.monthlyActivityRate}%</div>
+                            <div className="card-label">이번 달 활동률</div>
+                        </div>
+                    </div>
+
+                    <div className="tab-container">
+                        <div className="tab-buttons">
+                            <button
+                                className={`tab-button ${activeTab === 'users' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('users')}
+                            >
+                                📋 사용자 목록
+                            </button>
+                            <button
+                                className={`tab-button ${activeTab === 'ranking' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('ranking')}
+                            >
+                                🏆 코칭왕 랭킹
+                            </button>
+                        </div>
+
+                        <div className="tab-content" style={{ display: activeTab === 'users' ? 'block' : 'none' }}>
+                            {data.users.length === 0 ? (
+                                <div className="empty-state">등록된 사용자가 없습니다.</div>
+                            ) : (
+                                <div className="user-list-panel">
+                                    <div className="user-list-left">
+                                        <input
+                                            type="text"
+                                            className="search-input"
+                                            placeholder="사용자명 검색..."
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                        />
+                                        <select className="sort-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+                                            <option value="name">이름순</option>
+                                            <option value="records">기록순</option>
+                                            <option value="badges">배지순</option>
+                                        </select>
+                                        <div className="user-items">
+                                            {getFilteredAndSortedUsers().map(u => {
+                                                const uRecords = data.records.filter(r => r.userId === u.id);
+                                                const uBadges = getEarnedBadges(uRecords);
+                                                return (
+                                                    <div
+                                                        key={u.id}
+                                                        className={`user-item ${selectedUserId === u.id ? 'active' : ''}`}
+                                                        onClick={() => setSelectedUserId(u.id)}
+                                                    >
+                                                        <div className="user-item-name">{u.name}</div>
+                                                        {uBadges.length > 0 && (
+                                                            <div className="user-item-badges">
+                                                                {uBadges.slice(0, 3).map((badge, i) => (
+                                                                    <span key={i} className="badge-tiny">{badge.slice(0, 3)}</span>
+                                                                ))}
+                                                                {uBadges.length > 3 && <span className="badge-tiny">+{uBadges.length - 3}</span>}
+                                                            </div>
+                                                        )}
+                                                        <div className="user-item-records">📝 {uRecords.length}건</div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    {selectedUser ? (
+                                        <div className="user-detail">
+                                            <div className="detail-section">
+                                                <div className="detail-title">프로필</div>
+                                                <div className="detail-item">
+                                                    <span className="detail-label">이름</span>
+                                                    <span className="detail-value">{selectedUser.name}</span>
+                                                </div>
+                                                <div className="detail-item">
+                                                    <span className="detail-label">회사</span>
+                                                    <span className="detail-value">{selectedUser.company}</span>
+                                                </div>
+                                                <div className="detail-item">
+                                                    <span className="detail-label">팀</span>
+                                                    <span className="detail-value">{selectedUser.team}</span>
+                                                </div>
+                                                <div className="detail-item">
+                                                    <span className="detail-label">팀 규모</span>
+                                                    <span className="detail-value">{selectedUser.teamSize}명</span>
+                                                </div>
+                                                <div className="detail-item">
+                                                    <span className="detail-label">레벨</span>
+                                                    <span className="detail-value">{selectedUser.level}</span>
+                                                </div>
+                                                <div className="detail-item">
+                                                    <span className="detail-label">직급</span>
+                                                    <span className="detail-value">{selectedUser.position}</span>
+                                                </div>
+                                                <div className="detail-item">
+                                                    <span className="detail-label">가입일</span>
+                                                    <span className="detail-value">{selectedUser.joinDate}</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="detail-section">
+                                                <div className="detail-title">활동 요약</div>
+                                                <div className="detail-item">
+                                                    <span className="detail-label">총 접속일수</span>
+                                                    <span className="detail-value">{activitySummary.loginDays}일</span>
+                                                </div>
+                                                <div className="detail-item">
+                                                    <span className="detail-label">총 기록횟수</span>
+                                                    <span className="detail-value">{userRecords.length}회</span>
+                                                </div>
+                                                <div className="detail-item">
+                                                    <span className="detail-label">이번달 기록</span>
+                                                    <span className="detail-value">{activitySummary.thisMonth}회</span>
+                                                </div>
+                                                <div className="detail-item">
+                                                    <span className="detail-label">평균 말하기비율</span>
+                                                    <span className="detail-value">{activitySummary.avgTalkRatio}%</span>
+                                                </div>
+                                                <div className="detail-item">
+                                                    <span className="detail-label">이번달 목표</span>
+                                                    <span className="detail-value">{activitySummary.monthlyTargetPercent}%</span>
+                                                </div>
+                                                <div className="detail-item">
+                                                    <span className="detail-label">배지 수</span>
+                                                    <span className="detail-value">{userBadges.length}개</span>
+                                                </div>
+                                                <div style={{ marginTop: '12px' }}>
+                                                    <div className="target-bar">
+                                                        <div className="target-fill" style={{ width: `${Math.min(activitySummary.monthlyTargetPercent, 100)}%` }}>
+                                                            {activitySummary.monthlyTargetPercent}%
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {userBadges.length > 0 && (
+                                                <div className="detail-section">
+                                                    <div className="detail-title">획득 배지</div>
+                                                    <div className="badge-list">
+                                                        {userBadges.map((badge, i) => (
+                                                            <div key={i} className="badge-item">{badge}</div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {monthlyHeights.length > 0 && (
+                                                <div className="detail-section">
+                                                    <div className="detail-title">월별 기록</div>
+                                                    <div className="monthly-chart">
+                                                        {monthlyHeights.map((h, i) => (
+                                                            <div key={i} className="monthly-bar" style={{ height: `${h || 4}%` }}></div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {userRecords.length > 0 && (
+                                                <div className="detail-section">
+                                                    <div className="detail-title">최근 기록 (상위 5)</div>
+                                                    <div className="recent-records">
+                                                        {userRecords.slice(-5).reverse().map((record, i) => (
+                                                            <div key={i} className="record-item">
+                                                                <div className="record-item-date">{record.date} ({record.duration})</div>
+                                                                <div className="record-item-member">{record.member} {record.mood}</div>
+                                                                <div className="record-item-topic">{record.keyTopic || 'N/A'}</div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="empty-state">사용자를 선택하세요</div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="tab-content" style={{ display: activeTab === 'ranking' ? 'block' : 'none' }}>
+                            <div className="ranking-container">
+                                {rankingData.length > 0 && (
+                                    <>
+                                        <div className="ranking-top3">
+                                            {rankingData.slice(0, 3).map((item, idx) => {
+                                                const medals = ['🥇', '🥈', '🥉'];
+                                                const thisMonth = item.records.filter(r => r.date.slice(0, 7) === new Date().toISOString().slice(0, 7)).length;
+                                                const targetPercent = item.targetMonthly > 0 ? ((thisMonth / item.targetMonthly) * 100).toFixed(1) : 0;
+                                                return (
+                                                    <div key={idx} className="ranking-card">
+                                                        <div className="ranking-medal">{medals[idx]}</div>
+                                                        <div className="ranking-name">{item.user.name}</div>
+                                                        <div className="ranking-company">{item.user.company}</div>
+                                                        <div className="ranking-stats">
+                                                            <div className="ranking-stat">
+                                                                <div className="ranking-stat-value">{item.records.length}</div>
+                                                                <div className="ranking-stat-label">기록</div>
+                                                            </div>
+                                                            <div className="ranking-stat">
+                                                                <div className="ranking-stat-value">{item.badges.length}</div>
+                                                                <div className="ranking-stat-label">배지</div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="target-bar">
+                                                            <div className="target-fill" style={{ width: `${Math.min(targetPercent, 100)}%` }}>
+                                                                {targetPercent}%
+                                                            </div>
+                                                        </div>
+                                                        <div className="ranking-score" style={{ marginTop: '16px' }}>{item.score}</div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+
+                                        {rankingData.length > 3 && (
+                                            <div className="ranking-rows">
+                                                {rankingData.slice(3).map((item, idx) => {
+                                                    const thisMonth = item.records.filter(r => r.date.slice(0, 7) === new Date().toISOString().slice(0, 7)).length;
+                                                    const targetPercent = item.targetMonthly > 0 ? ((thisMonth / item.targetMonthly) * 100).toFixed(1) : 0;
+                                                    return (
+                                                        <div key={idx} className="ranking-row top">
+                                                            <div className="rank-number">{idx + 4}</div>
+                                                            <div className="ranking-info">
+                                                                <div className="ranking-info-name">{item.user.name}</div>
+                                                                <div className="ranking-info-company">{item.user.company}</div>
+                                                            </div>
+                                                            <div className="ranking-cell">{item.score}</div>
+                                                            <div className="ranking-cell">{item.records.length}회</div>
+                                                            <div className="ranking-cell">{item.badges.length}개</div>
+                                                            <div className="ranking-cell">{targetPercent}%</div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                                {rankingData.length === 0 && <div className="empty-state">랭킹 데이터가 없습니다.</div>}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function App() {
+            const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+            return isLoggedIn ? (
+                <Dashboard onLogout={() => setIsLoggedIn(false)} />
+            ) : (
+                <LoginPage onLogin={() => setIsLoggedIn(true)} />
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
