@@ -7,6 +7,7 @@
 <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR','Apple SD Gothic Neo',sans-serif;background:#f0f4f8;color:#1a202c;overflow-x:hidden}
@@ -471,27 +472,56 @@ function getConsecMonths(r){const ms=[...new Set(r.map(x=>x.date.slice(0,7)))].s
 function randomQuote(){return QUOTES[Math.floor(Math.random()*QUOTES.length)]}
 function todayQuestion(){const non_ice=QUESTIONS.filter(q=>q.cat!=='아이스브레이킹');return non_ice[new Date().getDate()%non_ice.length]}
 
-const LS='bc_v5';
-function load(){try{return JSON.parse(localStorage.getItem(LS)||'{"users":[],"records":[]}');}catch{return{users:[],records:[]}}}
-function save(d){localStorage.setItem(LS,JSON.stringify(d))}
+/* ═══ SUPABASE 연동 ═══ */
+const SUPA_URL='https://ailyazoaqsdawwbbxbhn.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpbHlhem9hcXNkYXd3YmJ4YmhuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNzU3NTYsImV4cCI6MjA5MTc1MTc1Nn0.PtmUJkZWsRJ_fKWWEUQUrA7kc1xaCvwVaj48HKNJIlA';
+const sb=supabase.createClient(SUPA_URL,SUPA_KEY);
+
+function dbUserToApp(row){return{id:row.id,name:row.name,pw:row.pw,...(row.profile||{}),loginDates:row.login_dates||[]}}
+function dbRecToApp(row){return{id:row.id,userId:row.user_id,date:row.date,...(row.rec_data||{})}}
+
+async function sbGetAllUsers(){const{data}=await sb.from('users').select('*');return(data||[]).map(dbUserToApp)}
+async function sbGetUser(id){const{data}=await sb.from('users').select('*').eq('id',id).single();return data?dbUserToApp(data):null}
+async function sbLoadRecords(userId){const{data}=await sb.from('records').select('*').eq('user_id',userId).order('date',{ascending:false});return(data||[]).map(dbRecToApp)}
+async function sbRegister(appUser){const{name,pw,loginDates,...profile}=appUser;const{data,error}=await sb.from('users').insert({name,pw,profile,login_dates:loginDates||[]}).select().single();if(error)throw error;return dbUserToApp(data)}
+async function sbUpdateUser(appUser){const{id,name,pw,loginDates,...profile}=appUser;await sb.from('users').update({pw,profile,login_dates:loginDates||[]}).eq('id',id)}
+async function sbSaveRecord(userId,appRec){const{id,userId:_uid,...recData}=appRec;if(id&&id.includes('-')){await sb.from('records').update({rec_data:recData,date:appRec.date}).eq('id',id);return appRec}const{data}=await sb.from('records').insert({user_id:userId,date:appRec.date,rec_data:recData}).select().single();return data?dbRecToApp(data):appRec}
+async function sbDeleteRecord(id){await sb.from('records').delete().eq('id',id)}
 
 
 /* ═══ APP ═══ */
 function App(){
-const[data,setData]=useState(load);
-const[uid,setUid]=useState(()=>localStorage.getItem('bc_uid5')||null);
+const[data,setData]=useState({users:[],records:[]});
+const[uid,setUid]=useState(null);
 const[screen,setScreen]=useState('login');
 const[editRec,setEditRec]=useState(null);
 const[detailRec,setDetailRec]=useState(null);
+const[appLoading,setAppLoading]=useState(true);
 
 const me=data.users.find(u=>u.id===uid)||null;
 const myRecords=useMemo(()=>data.records.filter(r=>r.userId===uid).sort((a,b)=>b.date.localeCompare(a.date)),[data.records,uid]);
 
-useEffect(()=>{if(me)setScreen('home')},[]);
+useEffect(()=>{
+  (async()=>{
+    try{
+      const users=await sbGetAllUsers();
+      const savedUid=localStorage.getItem('bc_uid5');
+      let records=[];
+      if(savedUid&&users.find(u=>u.id===savedUid)){
+        records=await sbLoadRecords(savedUid);
+        setUid(savedUid);
+        setData({users,records});
+        setScreen('home');
+      } else {
+        setData({users,records:[]});
+      }
+    }catch(e){console.error('Supabase 로드 오류:',e)}
+    setAppLoading(false);
+  })();
+},[]);
 
-function upd(d){setData(d);save(d)}
 function nav(s){setScreen(s);setDetailRec(null)}
-function login(id){
+async function login(id){
   setUid(id);localStorage.setItem('bc_uid5',id);
   const today=new Date().toISOString().slice(0,10);
   const user=data.users.find(u=>u.id===id);
@@ -499,22 +529,39 @@ function login(id){
     const loginDates=user.loginDates||[];
     if(!loginDates.includes(today)){
       const updated={...user,loginDates:[...loginDates,today],lastLogin:today};
-      upd({...data,users:data.users.map(u=>u.id===id?updated:u)});
+      setData(d=>({...d,users:d.users.map(u=>u.id===id?updated:u)}));
+      sbUpdateUser(updated);
     }
   }
+  const records=await sbLoadRecords(id);
+  setData(d=>({...d,records}));
   setScreen('home');
 }
 function logout(){setUid(null);localStorage.removeItem('bc_uid5');setScreen('login')}
-function register(u){const d={...data,users:[...data.users,u]};upd(d);login(u.id)}
-function updateUser(u){upd({...data,users:data.users.map(x=>x.id===u.id?u:x)})}
-function saveRec(rec){
-  let recs;
-  if(rec.id&&data.records.find(r=>r.id===rec.id)){recs=data.records.map(r=>r.id===rec.id?rec:r)}
-  else{recs=[...data.records,{...rec,id:Date.now()+'',userId:uid}]}
-  upd({...data,records:recs});setEditRec(null);nav('records');
+async function register(u){
+  try{
+    const created=await sbRegister(u);
+    setData(d=>({...d,users:[...d.users,created]}));
+    await login(created.id);
+  }catch(e){throw e}
 }
-function deleteRec(id){upd({...data,records:data.records.filter(r=>r.id!==id)});setDetailRec(null)}
+async function updateUser(u){
+  setData(d=>({...d,users:d.users.map(x=>x.id===u.id?u:x)}));
+  sbUpdateUser(u);
+}
+async function saveRec(rec){
+  const saved=await sbSaveRecord(uid,rec);
+  let recs;
+  if(rec.id&&data.records.find(r=>r.id===rec.id)){recs=data.records.map(r=>r.id===rec.id?saved:r)}
+  else{recs=[...data.records,saved]}
+  setData(d=>({...d,records:recs}));setEditRec(null);nav('records');
+}
+async function deleteRec(id){
+  await sbDeleteRecord(id);
+  setData(d=>({...d,records:d.records.filter(r=>r.id!==id)}));setDetailRec(null);
+}
 
+if(appLoading)return<div className="auth-bg" style={{justifyContent:'center',alignItems:'center',display:'flex',flexDirection:'column',gap:16}}><div style={{fontSize:48}}>🏈</div><div style={{color:'#fff',fontSize:18,fontWeight:700}}>코칭 허브 로딩 중...</div></div>;
 if(!me)return <AuthScreen users={data.users} onLogin={login} onRegister={register}/>;
 if(screen==='newRecord'||screen==='editRecord')return<div className="app"><RecordForm rec={editRec} onSave={saveRec} onBack={()=>{setEditRec(null);nav('records')}}/></div>;
 if(screen==='mypage')return<div className="app"><MyPage me={me} onUpdate={updateUser} onLogout={logout} onBack={()=>nav('home')}/></div>;
@@ -542,19 +589,28 @@ const[showPw,setShowPw]=useState(false);
 const[showRPw,setShowRPw]=useState(false);
 const[rf,setRf]=useState({name:'',pw:'',team:'',company:'GC케어',memberCount:5,level:'초급',position:'팀장'});
 const[err,setErr]=useState('');
+const[authLoading,setAuthLoading]=useState(false);
 
-function doLogin(){
+async function doLogin(){
   if(!lf.name.trim()||!lf.pw.trim()){setErr('이름과 비밀번호를 모두 입력해주세요.');return}
   if(lf.name.trim()==='박건우짱'&&lf.pw.trim()==='1111'){window.open('2026-04-15_빌캠벨코칭허브_admin_v6.html','_blank');return;}
   const u=users.find(u=>u.name===lf.name.trim()&&u.pw===lf.pw.trim());
   if(!u){setErr('등록된 정보와 일치하지 않습니다.');return}
-  onLogin(u.id);
+  setAuthLoading(true);
+  try{await onLogin(u.id)}catch(e){setErr('오류가 발생했습니다. 다시 시도해주세요.');setAuthLoading(false)}
 }
-function doReg(){
+async function doReg(){
   if(!rf.name.trim()||!rf.pw.trim()||!rf.team.trim()){setErr('모든 필수 항목을 입력해주세요.');return}
   if(!/^(?=.*[a-zA-Z])(?=.*\d).{5,}$/.test(rf.pw)){setErr('비밀번호는 영문+숫자 조합 5자 이상으로 설정해주세요.');return}
   if(users.find(u=>u.name===rf.name.trim())){setErr('이미 등록된 이름입니다.');return}
-  onRegister({id:Date.now()+'',name:rf.name.trim(),pw:rf.pw.trim(),team:rf.team.trim(),company:rf.company,memberCount:rf.memberCount,level:rf.level,position:rf.position,joinDate:new Date().toISOString().slice(0,10),loginDates:[new Date().toISOString().slice(0,10)],lastLogin:new Date().toISOString().slice(0,10)});
+  setAuthLoading(true);
+  try{
+    await onRegister({name:rf.name.trim(),pw:rf.pw.trim(),team:rf.team.trim(),company:rf.company,memberCount:rf.memberCount,level:rf.level,position:rf.position,joinDate:new Date().toISOString().slice(0,10),loginDates:[new Date().toISOString().slice(0,10)],lastLogin:new Date().toISOString().slice(0,10)});
+  }catch(e){
+    if(e.message?.includes('unique')||e.message?.includes('duplicate'))setErr('이미 등록된 이름입니다.');
+    else setErr('가입 중 오류가 발생했습니다. 다시 시도해주세요.');
+    setAuthLoading(false);
+  }
 }
 const sl=(s,k)=>e=>{s(p=>({...p,[k]:e.target.value}));setErr('')};
 
@@ -580,7 +636,7 @@ return(
     <div className="fg"><label>이름</label><input value={lf.name} onChange={sl(setLf,'name')} placeholder="예) 박건우" onKeyDown={e=>e.key==='Enter'&&doLogin()}/></div>
     <div className="fg"><label>비밀번호</label><div className="pw-wrap"><input type={showPw?"text":"password"} value={lf.pw} onChange={e=>{sl(setLf,"pw")(e);}} placeholder="비밀번호 입력"/><button className="pw-toggle" onClick={()=>setShowPw(!showPw)} type="button">{showPw?"👁":"👁‍🗨"}</button></div></div>
     {err&&<p className="err">⚠ {err}</p>}
-    <button className="btn btn-primary" onClick={doLogin}>로그인 →</button>
+    <button className="btn btn-primary" onClick={doLogin} disabled={authLoading}>{authLoading?'로그인 중...':'로그인 →'}</button>
   </>):(<>
     <div className="fg"><label>소속 회사</label><select value={rf.company} onChange={sl(setRf,'company')}><option>GC케어</option><option>GC메디아이</option></select></div>
     <div className="fg-row">
@@ -605,7 +661,7 @@ return(
       </div>
     </div>
     {err&&<p className="err">⚠ {err}</p>}
-    <button className="btn btn-primary" onClick={doReg}>가입하고 시작하기 🚀</button>
+    <button className="btn btn-primary" onClick={doReg} disabled={authLoading}>{authLoading?'가입 처리 중...':'가입하고 시작하기 🚀'}</button>
   </>)}
 </div>
 </div>);
