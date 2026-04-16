@@ -671,6 +671,60 @@ function getConsecMonths(r){const ms=[...new Set(r.map(x=>x.date.slice(0,7)))].s
 function randomQuote(){return QUOTES[Math.floor(Math.random()*QUOTES.length)]}
 function todayQuestion(){const non_ice=QUESTIONS.filter(q=>q.cat!=='아이스브레이킹');return non_ice[new Date().getDate()%non_ice.length]}
 
+/* ═══ 우리팀의 온도 시스템 ═══ */
+const TEMP_LEVELS=[
+  {min:0,max:36.4,label:'준비 중',emoji:'🥶',color:'#90cdf4',msg:'아직 코칭이 시작되지 않았어요'},
+  {min:36.5,max:37.9,label:'시작',emoji:'😊',color:'#63b3ed',msg:'코칭의 첫 발을 내딛었습니다'},
+  {min:38,max:41.9,label:'워밍업',emoji:'😄',color:'#4fd1c5',msg:'코칭 근육이 붙기 시작합니다'},
+  {min:42,max:49.9,label:'성장 중',emoji:'💪',color:'#48bb78',msg:'팀에 변화가 느껴지기 시작합니다'},
+  {min:50,max:59.9,label:'숙련',emoji:'🔥',color:'#ed8936',msg:'팀원들이 신뢰를 보내고 있습니다'},
+  {min:60,max:74.9,label:'마스터',emoji:'⭐',color:'#e53e3e',msg:'빌 캠벨이 인정할 코칭 수준입니다'},
+  {min:75,max:99,label:'전설',emoji:'🏆',color:'#d53f8c',msg:'당신의 팀은 최고의 팀입니다'},
+];
+function getTempLevel(t){return TEMP_LEVELS.find(l=>t>=l.min&&t<=l.max)||TEMP_LEVELS[0]}
+function calcTemp(records){
+  let t=36.5;const details=[];
+  // ① 배지 보너스: 배지당 +0.4°C
+  const eb=BADGES.filter(b=>b.req(records)).length;
+  if(eb>0){t+=eb*0.4;details.push({label:'획득 배지 ('+eb+'개)',val:'+'+((eb*0.4).toFixed(1))+'°C',icon:'🏅'})}
+  // ② 코칭 횟수 누적 보너스
+  let rb=0;
+  if(records.length>=1)rb+=0.5;if(records.length>=3)rb+=0.8;if(records.length>=5)rb+=1.2;
+  if(records.length>=10)rb+=2.0;if(records.length>=20)rb+=3.0;
+  if(rb>0){t+=rb;details.push({label:'코칭 횟수 ('+records.length+'회)',val:'+'+rb.toFixed(1)+'°C',icon:'📝'})}
+  // ③ 경청 스킬 보너스
+  if(records.length>=3){const ar=avg(records.map(r=>r.talkRatio));let lb=0;
+    if(ar<=20){lb=3.0}else if(ar<=30){lb=2.0}else if(ar<=40){lb=1.0}
+    if(lb>0){t+=lb;details.push({label:'경청 스킬 (평균 '+Math.round(ar)+'%)',val:'+'+lb.toFixed(1)+'°C',icon:'👂'})}}
+  // ④ 연속 활동 보너스
+  const cm=getConsecMonths(records);const cb=Math.min(cm*0.5,3.0);
+  if(cb>0){t+=cb;details.push({label:'연속 활동 ('+cm+'개월)',val:'+'+cb.toFixed(1)+'°C',icon:'🔗'})}
+  // ⑤ 다양한 팀원 보너스
+  const ms=new Set(records.map(r=>r.member)).size;let mb=0;
+  if(ms>=5)mb=2.0;else if(ms>=3)mb=1.0;
+  if(mb>0){t+=mb;details.push({label:'다양한 팀원 ('+ms+'명)',val:'+'+mb.toFixed(1)+'°C',icon:'👥'})}
+  // ⑥ 월간 미션 달성 보너스
+  const mm=getMaxMonthly(records);let mmb=0;
+  if(mm>=5)mmb=1.5;else if(mm>=3)mmb=0.8;
+  if(mmb>0){t+=mmb;details.push({label:'월간 미션 (월 최대 '+mm+'회)',val:'+'+mmb.toFixed(1)+'°C',icon:'📅'})}
+  t=Math.min(99,Math.max(0,Math.round(t*10)/10));
+  return{temp:t,details,level:getTempLevel(t)};
+}
+/* 온도 색상 그라데이션 */
+function tempBarColor(t){
+  if(t<38)return'linear-gradient(90deg,#90cdf4,#63b3ed)';
+  if(t<42)return'linear-gradient(90deg,#63b3ed,#4fd1c5)';
+  if(t<50)return'linear-gradient(90deg,#4fd1c5,#48bb78)';
+  if(t<60)return'linear-gradient(90deg,#48bb78,#ed8936)';
+  if(t<75)return'linear-gradient(90deg,#ed8936,#e53e3e)';
+  return'linear-gradient(90deg,#e53e3e,#d53f8c)';
+}
+/* 다음 목표 온도 */
+function nextTempGoal(t){
+  const goals=[38,42,50,60,75,99];
+  return goals.find(g=>g>t)||99;
+}
+
 /* ═══ SUPABASE 연동 ═══ */
 const SUPA_URL='https://ailyazoaqsdawwbbxbhn.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpbHlhem9hcXNkYXd3YmJ4YmhuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxNzU3NTYsImV4cCI6MjA5MTc1MTc1Nn0.PtmUJkZWsRJ_fKWWEUQUrA7kc1xaCvwVaj48HKNJIlA';
@@ -984,8 +1038,8 @@ const[quote]=useState(randomQuote);
 if(isDesktop){
   const[ddDetail,setDdDetail]=useState(null);
   const qt=todayQuestion();
-  const uniqueMembers=[...new Set(records.map(r=>r.member))].length;
   const recentRecs=records.slice(0,5);
+  const ti=calcTemp(records);
 
   return(<div className="desk-dash">
     {/* Welcome message */}
@@ -998,6 +1052,17 @@ if(isDesktop){
     </div>
     {/* 4-column stat cards */}
     <div className="dd-grid">
+      <div className="dd-card" style={{cursor:'pointer'}} onClick={()=>nav('history')}>
+        <div className="dd-label">🌡️ 우리팀의 온도</div>
+        <div style={{display:'flex',alignItems:'baseline',gap:6}}>
+          <div className="dd-value" style={{color:ti.level.color}}>{ti.temp}°C</div>
+          <span style={{fontSize:20}}>{ti.level.emoji}</span>
+        </div>
+        <div style={{height:6,background:'#edf2f7',borderRadius:4,overflow:'hidden',margin:'6px 0 4px'}}>
+          <div style={{height:'100%',borderRadius:4,background:tempBarColor(ti.temp),width:(ti.temp/99*100)+'%',transition:'width .5s'}}/>
+        </div>
+        <div className="dd-sub" style={{color:ti.level.color}}>{ti.level.label} · 첫 온도 36.5°C</div>
+      </div>
       <div className="dd-card">
         <div className="dd-label">📊 이번 달 1on1</div>
         <div className="dd-value">{mRecs.length} <span className="dd-unit">/ {target}회</span></div>
@@ -1008,11 +1073,6 @@ if(isDesktop){
         <div className="dd-label">🎯 평균 말하기 비율</div>
         <div className="dd-value">{totalAvgR!=null?totalAvgR+'%':'--'}</div>
         <div className={`dd-sub ${totalAvgR&&totalAvgR<=30?'good':'warn'}`}>{totalAvgR&&totalAvgR<=30?'목표 30% 이하 달성 중':'목표: 30% 이하'}</div>
-      </div>
-      <div className="dd-card">
-        <div className="dd-label">👥 코칭한 구성원</div>
-        <div className="dd-value">{uniqueMembers} <span className="dd-unit">/ {me.memberCount}명</span></div>
-        <div className={`dd-sub ${uniqueMembers>=me.memberCount?'good':'info'}`}>{uniqueMembers>=me.memberCount?'전원 코칭 완료':`${me.memberCount-uniqueMembers}명 남음`}</div>
       </div>
       <div className="dd-card">
         <div className="dd-label">🏅 획득 배지</div>
@@ -1132,11 +1192,27 @@ return(<div>
 
   <div className="content">
 
-    {/* ① 진행 현황 (최상단) */}
-    <div className="stats" style={{padding:0,margin:'14px 0 8px'}}>
-      <div className="sc"><div className="sc-num">{mRecs.length}<span style={{fontSize:14,color:'#718096'}}>/{target}</span></div><div className="sc-lbl">이번 달 1on1</div><div className={`sc-sub ${mRecs.length>=target?'good':mRecs.length>=target/2?'warn':'muted'}`}>{mRecs.length>=target?'✅ 목표 달성!':'진행 중'}</div></div>
-      <div className="sc"><div className="sc-num">{totalAvgR!=null?totalAvgR+'%':'--'}</div><div className="sc-lbl">내 말하기</div><div className={`sc-sub ${totalAvgR&&totalAvgR<=30?'good':'muted'}`}>{totalAvgR&&totalAvgR<=30?'👂 경청 우수':'목표 30%↓'}</div></div>
-      <div className="sc"><div className="sc-num">{records.length}</div><div className="sc-lbl">총 횟수</div><div className={`sc-sub ${records.length>=20?'good':records.length>=10?'warn':'muted'}`}>{records.length>=20?'🏆 전문가':records.length>=10?'성장 중':'시작'}</div></div>
+    {/* ① 우리팀의 온도 + 진행 현황 */}
+    {(()=>{const ti=calcTemp(records);return(
+    <div style={{background:'#fff',borderRadius:14,padding:14,marginBottom:10,boxShadow:'0 2px 8px rgba(0,0,0,.06)',cursor:'pointer'}} onClick={()=>nav('history')}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+        <div style={{fontSize:13,fontWeight:700,color:'#4a5568'}}>🌡️ 우리팀의 온도</div>
+        <div style={{fontSize:11,color:'#a0aec0'}}>첫 온도 36.5°C</div>
+      </div>
+      <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
+        <div style={{fontSize:28,fontWeight:900,color:ti.level.color}}>{ti.temp}°C</div>
+        <span style={{fontSize:24}}>{ti.level.emoji}</span>
+        <div style={{fontSize:12,color:ti.level.color,fontWeight:600,marginLeft:'auto'}}>{ti.level.label}</div>
+      </div>
+      <div style={{height:8,background:'#edf2f7',borderRadius:4,overflow:'hidden'}}>
+        <div style={{height:'100%',borderRadius:4,background:tempBarColor(ti.temp),width:(ti.temp/99*100)+'%',transition:'width .5s'}}/>
+      </div>
+      <div style={{fontSize:11,color:'#718096',marginTop:6}}>{ti.level.msg}</div>
+    </div>)})()}
+    <div className="stats" style={{padding:0,margin:'0 0 8px'}}>
+      <div className="sc"><div className="sc-num">{mRecs.length}<span style={{fontSize:14,color:'#718096'}}>/{target}</span></div><div className="sc-lbl">이번 달</div><div className={`sc-sub ${mRecs.length>=target?'good':mRecs.length>=target/2?'warn':'muted'}`}>{mRecs.length>=target?'✅ 달성!':'진행 중'}</div></div>
+      <div className="sc"><div className="sc-num">{totalAvgR!=null?totalAvgR+'%':'--'}</div><div className="sc-lbl">말하기</div><div className={`sc-sub ${totalAvgR&&totalAvgR<=30?'good':'muted'}`}>{totalAvgR&&totalAvgR<=30?'👂 경청':'목표 30%↓'}</div></div>
+      <div className="sc"><div className="sc-num">{earned}<span style={{fontSize:14,color:'#718096'}}>/{BADGES.length}</span></div><div className="sc-lbl">배지</div><div className="sc-sub muted">도전 중</div></div>
     </div>
 
     {/* ② 이번달 목표 진행률 */}
@@ -1694,22 +1770,141 @@ return(<div className="scr">
 
 /* ═══ HISTORY SCREEN ═══ */
 function HistoryScreen({records,nav}){
+const ti=calcTemp(records);
+const nextGoal=nextTempGoal(ti.temp);
+const nextLv=getTempLevel(nextGoal);
+const earned=BADGES.filter(b=>b.req(records)).length;
 const months=useMemo(()=>{
   const m={};records.forEach(r=>{const k=r.date.slice(0,7);if(!m[k])m[k]={count:0,members:new Set(),ratios:[]};m[k].count++;m[k].members.add(r.member);m[k].ratios.push(r.talkRatio)});
   return Object.entries(m).sort((a,b)=>b[0].localeCompare(a[0])).map(([k,v])=>({key:k,count:v.count,members:v.members.size,avgRatio:Math.round(avg(v.ratios))}));
 },[records]);
+
+/* 코칭 성장 마일스톤 */
+const milestones=[];
+if(records.length===0)milestones.push({icon:'🌱',title:'첫 1on1을 시작해보세요',desc:'한 번의 대화가 팀을 변화시킵니다. 용기를 내서 첫 발을 떼보세요.',done:false});
+if(records.length>=1)milestones.push({icon:'🌱',title:'첫 코칭을 시작했습니다!',desc:'코칭의 문을 열었습니다. 빌 캠벨도 처음엔 서툴렀습니다.',done:true});
+if(records.length>=3)milestones.push({icon:'🔥',title:'3회 달성! 습관이 만들어지고 있어요',desc:'"반복이 습관이 되고, 습관이 문화가 됩니다."',done:true});
+else if(records.length>=1)milestones.push({icon:'🔥',title:'3회까지 '+Math.max(0,3-records.length)+'회 남았어요',desc:'꾸준함이 신뢰를 만듭니다. 조금만 더!',done:false});
+if(records.length>=5)milestones.push({icon:'⭐',title:'5회 돌파! 팀원들이 변화를 느끼기 시작합니다',desc:'팀원들이 "이번 1on1은 다르다"고 느끼기 시작하는 시점입니다.',done:true});
+if(records.length>=10)milestones.push({icon:'🏅',title:'10회 달성! 당신은 이미 코치입니다',desc:'10번의 대화는 팀의 신뢰 구조를 바꿉니다. 대단합니다!',done:true});
+if(records.length>=20)milestones.push({icon:'🏆',title:'20회! 빌 캠벨이 인정할 수준',desc:'당신의 팀은 이미 심리적 안전감 위에서 성장하고 있습니다.',done:true});
+
+/* 코칭 성장 팁 */
+const growthTips=[];
+if(records.length<3)growthTips.push({icon:'💡',title:'지금 가장 중요한 것',tip:'완벽한 코칭보다 "시작하는 것"이 중요합니다. 5분이라도 팀원에게 "요즘 어때?"라고 물어보세요.'});
+if(records.length>=3&&records.length<10){
+  const ar=records.length?Math.round(avg(records.map(r=>r.talkRatio))):50;
+  if(ar>30)growthTips.push({icon:'👂',title:'경청 비율을 낮춰보세요',tip:'현재 평균 '+ar+'%입니다. 질문을 던지고 7초간 기다려보세요. 침묵이 팀원의 진심을 열어줍니다.'});
+  else growthTips.push({icon:'👏',title:'경청 스킬이 뛰어나시네요!',tip:'평균 '+ar+'%로 이미 빌 캠벨의 80/20 법칙을 실천하고 계십니다.'});
+}
+if(records.length>=10)growthTips.push({icon:'🎯',title:'심화 코칭으로 나아가세요',tip:'GROW 프레임워크를 활용해 팀원이 스스로 답을 찾도록 이끌어보세요. 1on1 미팅 프레임을 참고하세요.'});
+const uniqueM=new Set(records.map(r=>r.member)).size;
+if(uniqueM<3&&records.length>0)growthTips.push({icon:'👥',title:'다양한 팀원과 대화하세요',tip:'현재 '+uniqueM+'명과 대화했습니다. 팀 전원과 1on1을 하면 팀 온도가 빠르게 올라갑니다.'});
+
 return(<div className="scr">
   <div className="scr-hdr"><button className="back" onClick={()=>nav('home')}>←</button><span className="scr-title">나의 성장 히스토리</span></div>
-  <div className="sec"><div className="sec-title" style={{marginBottom:12}}>🏅 성장 배지 ({BADGES.filter(b=>b.req(records)).length}/{BADGES.length})</div>
+
+  {/* ① 우리팀의 온도 상세 */}
+  <div style={{background:'linear-gradient(135deg,#1e3a5f 0%,#0a5c7d 100%)',borderRadius:16,padding:20,color:'#fff',marginBottom:16}}>
+    <div style={{fontSize:13,fontWeight:700,opacity:.8,marginBottom:12}}>🌡️ 우리팀의 온도</div>
+    <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:12}}>
+      <div style={{fontSize:42,fontWeight:900}}>{ti.temp}°C</div>
+      <span style={{fontSize:36}}>{ti.level.emoji}</span>
+      <div style={{marginLeft:'auto',textAlign:'right'}}>
+        <div style={{fontSize:16,fontWeight:700}}>{ti.level.label}</div>
+        <div style={{fontSize:11,opacity:.7,marginTop:2}}>첫 온도 36.5°C</div>
+      </div>
+    </div>
+    <div style={{height:10,background:'rgba(255,255,255,.2)',borderRadius:6,overflow:'hidden',marginBottom:8}}>
+      <div style={{height:'100%',borderRadius:6,background:tempBarColor(ti.temp),width:(ti.temp/99*100)+'%',transition:'width .5s'}}/>
+    </div>
+    <div style={{fontSize:12,opacity:.8,lineHeight:1.6}}>{ti.level.msg}</div>
+    <div style={{fontSize:11,opacity:.6,marginTop:4}}>다음 목표: {nextGoal}°C ({nextLv.label} {nextLv.emoji}) · {(nextGoal-ti.temp).toFixed(1)}°C 남음</div>
+  </div>
+
+  {/* ② 온도 상승 내역 */}
+  <div className="sec" style={{background:'#fff',borderRadius:14,padding:16,marginBottom:16,boxShadow:'0 2px 8px rgba(0,0,0,.06)'}}>
+    <div className="sec-title" style={{marginBottom:12}}>📊 온도 상승 내역</div>
+    <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10,padding:'8px 12px',background:'#f7fafc',borderRadius:10}}>
+      <span style={{fontSize:16}}>🌡️</span>
+      <span style={{fontSize:13,color:'#718096',fontWeight:600}}>기초 체온</span>
+      <span style={{marginLeft:'auto',fontSize:13,fontWeight:700,color:'#1e3a5f'}}>36.5°C</span>
+    </div>
+    {ti.details.length>0?ti.details.map((d,i)=>(
+      <div key={i} style={{display:'flex',alignItems:'center',gap:8,padding:'8px 12px',background:i%2===0?'#fff':'#f7fafc',borderRadius:10}}>
+        <span style={{fontSize:16}}>{d.icon}</span>
+        <span style={{fontSize:13,color:'#4a5568',fontWeight:600}}>{d.label}</span>
+        <span style={{marginLeft:'auto',fontSize:13,fontWeight:700,color:'#38a169'}}>{d.val}</span>
+      </div>
+    )):<div style={{padding:12,textAlign:'center',color:'#a0aec0',fontSize:13}}>코칭을 시작하면 온도가 올라갑니다!</div>}
+    <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 12px',background:'linear-gradient(90deg,#ebf8ff,#e6fffa)',borderRadius:10,marginTop:8,borderTop:'2px solid #4fd1c5'}}>
+      <span style={{fontSize:16}}>🔥</span>
+      <span style={{fontSize:13,fontWeight:700,color:'#1e3a5f'}}>현재 온도</span>
+      <span style={{marginLeft:'auto',fontSize:16,fontWeight:900,color:ti.level.color}}>{ti.temp}°C</span>
+    </div>
+  </div>
+
+  {/* ③ 코칭 성장 마일스톤 */}
+  <div className="sec" style={{background:'#fff',borderRadius:14,padding:16,marginBottom:16,boxShadow:'0 2px 8px rgba(0,0,0,.06)'}}>
+    <div className="sec-title" style={{marginBottom:12}}>🚀 코칭 성장 마일스톤</div>
+    {milestones.map((m,i)=>(
+      <div key={i} style={{display:'flex',gap:12,padding:'12px 0',borderBottom:i<milestones.length-1?'1px solid #edf2f7':'none',opacity:m.done?1:.5}}>
+        <div style={{fontSize:24,flexShrink:0}}>{m.done?m.icon:'🔒'}</div>
+        <div>
+          <div style={{fontSize:14,fontWeight:700,color:m.done?'#1e3a5f':'#a0aec0'}}>{m.done?'✅ ':''}{m.title}</div>
+          <div style={{fontSize:12,color:'#718096',marginTop:3,lineHeight:1.5}}>{m.desc}</div>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  {/* ④ 나를 위한 코칭 성장 팁 */}
+  {growthTips.length>0&&<div className="sec" style={{background:'#fff',borderRadius:14,padding:16,marginBottom:16,boxShadow:'0 2px 8px rgba(0,0,0,.06)'}}>
+    <div className="sec-title" style={{marginBottom:12}}>💡 지금 나에게 맞는 성장 팁</div>
+    {growthTips.map((g,i)=>(
+      <div key={i} style={{background:'#f7fafc',borderRadius:12,padding:14,marginBottom:i<growthTips.length-1?10:0,border:'1px solid #edf2f7'}}>
+        <div style={{fontSize:14,fontWeight:700,color:'#1e3a5f',marginBottom:6}}>{g.icon} {g.title}</div>
+        <div style={{fontSize:13,color:'#4a5568',lineHeight:1.6}}>{g.tip}</div>
+      </div>
+    ))}
+  </div>}
+
+  {/* ⑤ 온도 레벨 가이드 */}
+  <div className="sec" style={{background:'#fff',borderRadius:14,padding:16,marginBottom:16,boxShadow:'0 2px 8px rgba(0,0,0,.06)'}}>
+    <div className="sec-title" style={{marginBottom:12}}>🌡️ 온도 레벨 가이드</div>
+    {TEMP_LEVELS.slice(1).map((l,i)=>(
+      <div key={i} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 0',borderBottom:i<TEMP_LEVELS.length-2?'1px solid #f0f4f8':'none'}}>
+        <span style={{fontSize:20}}>{l.emoji}</span>
+        <div style={{flex:1}}>
+          <div style={{fontSize:13,fontWeight:700,color:ti.temp>=l.min?l.color:'#cbd5e0'}}>{l.label} ({l.min}~{l.max}°C)</div>
+          <div style={{fontSize:11,color:'#a0aec0'}}>{l.msg}</div>
+        </div>
+        {ti.temp>=l.min&&ti.temp<=l.max&&<span style={{fontSize:10,background:l.color,color:'#fff',padding:'2px 8px',borderRadius:10,fontWeight:700}}>현재</span>}
+      </div>
+    ))}
+  </div>
+
+  {/* ⑥ 성장 배지 */}
+  <div className="sec" style={{background:'#fff',borderRadius:14,padding:16,marginBottom:16,boxShadow:'0 2px 8px rgba(0,0,0,.06)'}}>
+    <div className="sec-title" style={{marginBottom:12}}>🏅 성장 배지 ({earned}/{BADGES.length})</div>
     <div className="gbadge-grid">{BADGES.map(b=>{const ok=b.req(records);return<div key={b.id} className={`gbadge ${ok?'earned':'locked'}`}><span className="gb-icon">{b.icon}</span><span className="gb-name">{b.name}</span><span className="gb-desc">{b.desc}</span></div>})}</div>
   </div>
-  <hr className="div"/>
-  <div className="sec"><div className="sec-title" style={{marginBottom:14}}>📅 월별 타임라인</div>
+
+  {/* ⑦ 월별 타임라인 */}
+  <div className="sec" style={{background:'#fff',borderRadius:14,padding:16,marginBottom:16,boxShadow:'0 2px 8px rgba(0,0,0,.06)'}}>
+    <div className="sec-title" style={{marginBottom:14}}>📅 월별 타임라인</div>
     {months.length===0?(<div className="empty"><span className="empty-icon">📈</span><p>기록을 시작해보세요!</p></div>):months.map((m,i)=>(
       <div key={m.key}><div className="tl-item"><div className="tl-dot">{m.count>=5?'⭐':m.count>=3?'🔥':'✓'}</div><div className="tl-body"><div className="tl-month">{m.key.replace('-','년 ')}월</div><div className="tl-stats">{m.count}회 · {m.members}명 · 평균 {m.avgRatio}% 발화</div><div className="prog-wrap" style={{marginTop:6}}><div className="prog-fill" style={{width:`${Math.min(100,m.count/5*100)}%`}}/></div></div></div>{i<months.length-1&&<div className="tl-line"/>}</div>
     ))}
   </div>
-  {records.length>0&&<div className="sum-box"><span className="sum-icon">🎯</span><div className="sum-title">총 {records.length}회 코칭</div><div className="sum-sub">{[...new Set(records.map(r=>r.member))].length}명과 함께 · 평균 {Math.round(avg(records.map(r=>r.talkRatio)))}% 발화</div></div>}
+
+  {/* ⑧ 종합 요약 */}
+  {records.length>0&&<div style={{background:'linear-gradient(135deg,#1e3a5f 0%,#0a5c7d 100%)',borderRadius:16,padding:20,color:'#fff',textAlign:'center',marginBottom:16}}>
+    <div style={{fontSize:32,marginBottom:8}}>{ti.level.emoji}</div>
+    <div style={{fontSize:20,fontWeight:800}}>총 {records.length}회 코칭 · {ti.temp}°C</div>
+    <div style={{fontSize:13,opacity:.8,marginTop:6}}>{[...new Set(records.map(r=>r.member))].length}명의 팀원과 함께 · 평균 {Math.round(avg(records.map(r=>r.talkRatio)))}% 발화</div>
+    <div style={{fontSize:12,opacity:.6,marginTop:8,lineHeight:1.5}}>"{records.length>=10?'당신은 이미 훌륭한 코치입니다. 팀원들이 당신에게 감사하고 있습니다.':records.length>=5?'꾸준한 코칭이 팀의 문화를 바꾸고 있습니다.':records.length>=3?'좋은 습관이 만들어지고 있어요. 계속 이 리듬을 유지하세요!':'모든 위대한 여정은 첫 걸음부터. 지금 당신이 그 첫 걸음을 내딛고 있습니다.'}"</div>
+  </div>}
 </div>);
 }
 
