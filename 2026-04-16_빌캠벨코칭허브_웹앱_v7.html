@@ -370,6 +370,48 @@ hr.div{border:none;border-top:1px solid #e2e8f0;margin:16px 0}
   .bnav{display:none}
   .content{padding-bottom:40px}
 }
+
+/* ═══ DESKTOP ONLY STYLES ═══ */
+.app.desktop{background:#f0f4f8}
+.app.desktop .sidebar{width:260px;background:linear-gradient(180deg,#1e3a5f 0%,#0a5c7d 100%);position:fixed;left:0;top:0;height:100vh;flex-direction:column;z-index:1000;padding:24px 0}
+.app.desktop .sidebar-logo{padding:0 20px;margin-bottom:24px;text-align:left}
+.app.desktop .sidebar-logo h1{font-size:14px;font-weight:800;margin-bottom:4px}
+.app.desktop .sidebar-logo p{font-size:11px;opacity:.6}
+.app.desktop .sidebar-nav{flex:1;overflow-y:auto}
+.app.desktop .sidebar-section{padding:12px 0;border:none;margin-top:8px}
+.app.desktop .sidebar-section-title{font-size:10px;font-weight:800;letter-spacing:.5px;opacity:.4;padding:0 20px;margin-bottom:8px;text-transform:uppercase}
+.app.desktop .sidebar-item{padding:10px 20px;font-size:13px;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:12px;border-radius:8px;cursor:pointer;transition:all .2s;margin:0 12px}
+.app.desktop .sidebar-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.app.desktop .sidebar-item.on{background:rgba(0,180,216,.3);color:#fff;font-weight:700}
+.app.desktop .sidebar-bottom{padding:16px 20px;border-top:1px solid rgba(255,255,255,.1)}
+.app.desktop .sidebar-user{font-size:13px;font-weight:700;color:#fff}
+.app.desktop .sidebar-user-role{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px}
+
+.app.desktop .topbar{background:#fff;border-bottom:1px solid #e2e8f0;padding:16px 32px;margin-left:260px;position:sticky;top:0;z-index:99;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.app.desktop .topbar-title{font-size:18px;font-weight:800;color:#1a202c}
+.app.desktop .topbar-search{flex:1;max-width:300px}
+.app.desktop .topbar-search input{width:100%;padding:8px 14px;border:2px solid #e2e8f0;border-radius:8px;font-size:13px;background:#fff;color:#1a202c;font-family:inherit}
+.app.desktop .topbar-search input:focus{outline:none;border-color:#1e3a5f}
+.app.desktop .topbar-search input::placeholder{color:#a0aec0}
+.app.desktop .topbar-actions{display:flex;gap:10px;align-items:center}
+
+.app.desktop .main-content{margin-left:260px}
+.app.desktop .content{padding:28px 32px;background:#f0f4f8}
+
+.app.desktop .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;padding:0;margin:0 0 28px 0}
+.app.desktop .sc{background:#fff;border-radius:14px;padding:20px;text-align:left;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+.app.desktop .sc-num{font-size:28px;font-weight:900;color:#1e3a5f;line-height:1}
+.app.desktop .sc-lbl{font-size:12px;color:#718096;margin-top:8px;margin-bottom:0}
+.app.desktop .sc-sub{font-size:12px;font-weight:600;margin-top:6px}
+
+.app.desktop .hdr{background:linear-gradient(135deg,#1e3a5f 0%,#0a5c7d 100%);color:#fff;padding:18px 32px;margin-left:260px;display:flex;gap:14px;align-items:center;position:sticky;top:52px;z-index:50}
+.app.desktop .hdr-avatar{width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.3)}
+.app.desktop .hdr-info{flex:1}
+.app.desktop .hdr-brand{font-size:11px;opacity:.7;font-weight:600;letter-spacing:.3px}
+.app.desktop .hdr-name{font-size:20px;font-weight:800;line-height:1.2;margin-top:2px}
+.app.desktop .hdr-sub{font-size:12px;opacity:.65;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.app.desktop .content-grid{display:grid;grid-template-columns:2fr 1fr;gap:20px}
 </style>
 </head>
 <body>
@@ -623,7 +665,8 @@ function App(){
   const renderSidebar=()=>(
     <div className="sidebar">
       <div className="sidebar-logo">
-        <h1>🏈 빌 캠벨<br/>코칭 허브</h1>
+        <h1>🏈 빌 캠벨 코칭 허브</h1>
+        <p>GC케어 · GC메디아이</p>
       </div>
       <div className="sidebar-nav">
         <div className="sidebar-section">
@@ -664,8 +707,8 @@ function App(){
         </div>
       </div>
       <div className="sidebar-bottom">
-        <div className="sidebar-user">{usr.nm}</div>
-        <div className="sidebar-user-role">{usr.tm||'팀 미정'}</div>
+        <div className="sidebar-user">{usr.name} {usr.position||'팀장'}</div>
+        <div className="sidebar-user-role">{usr.company} · {usr.team||'팀 미정'}</div>
       </div>
     </div>
   );
@@ -675,11 +718,11 @@ function App(){
       <div className="topbar-title">
         {scr==='home'?'대시보드':scr==='records'?'코칭 기록':scr==='history'?'성장 히스토리':scr==='questions'?'질문 라이브러리':scr==='guide'?'코칭 가이드':scr==='troubleshoot'?'위기 대응 위키':scr==='mypage'?'마이페이지':'캘린더'}
       </div>
-      <div className="topbar-search" style={{display:scr==='records'?'block':'none'}}>
-        <input type="text" placeholder="기록 검색..." />
+      <div className="topbar-search">
+        <input type="text" placeholder="🔍 기록 검색..." />
       </div>
       <div className="topbar-actions">
-        {scr==='records'&&<button className="btn btn-sm btn-primary" onClick={()=>setScr('form')}>+ 새 코칭 기록</button>}
+        <button className="btn btn-sm btn-primary" onClick={()=>setScr('form')}>+ 새 1on1</button>
       </div>
     </div>
   );
