@@ -263,7 +263,7 @@ input[type=range]{width:100%;cursor:pointer;accent-color:#1e3a5f}
 .cal-cell.has{background:#ebf8ff;color:#2b6cb0;font-weight:700}
 .cal-cell.has::after{content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:#00b4d8}
 .cal-cell.sel{background:#1e3a5f;color:#fff}.cal-cell.sel::after{background:#fff}
-.cal-cell.empty{cursor:default;pointer-events:none}
+.cal-cell.empty{cursor:default;pointer-events:none;color:transparent;user-select:none}
 
 /* TIMELINE */
 .tl-item{display:flex;gap:12px;margin-bottom:14px}
@@ -413,12 +413,12 @@ hr.div{border:none;border-top:1px solid #e2e8f0;margin:16px 0}
 
 /* ─── DESKTOP DASHBOARD ─── */
 .desk-dash{padding:28px 32px}
-.dd-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
-.dd-card{background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,.05);min-height:130px;display:flex;flex-direction:column;justify-content:center}
-.dd-label{font-size:12px;color:#718096;font-weight:500;margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.dd-value{font-size:28px;font-weight:900;color:#1e3a5f;line-height:1}
-.dd-unit{font-size:14px;color:#718096;font-weight:400}
-.dd-sub{font-size:12px;font-weight:600;margin-top:6px}
+.dd-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.dd-card{background:#fff;border-radius:14px;padding:16px 18px;box-shadow:0 2px 10px rgba(0,0,0,.05);overflow:hidden}
+.dd-label{font-size:11px;color:#718096;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.dd-value{font-size:22px;font-weight:900;color:#1e3a5f;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dd-unit{font-size:12px;color:#718096;font-weight:400}
+.dd-sub{font-size:11px;font-weight:600;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dd-sub.good{color:#38a169}
 .dd-sub.warn{color:#dd6b20}
 .dd-sub.info{color:#3182ce}
@@ -747,12 +747,11 @@ function App(){
   
   const sidebarItems=[
     {icon:'🏠',label:'대시보드',scr:'home'},
+    {icon:'📘',label:'코칭 허브 사용 가이드',scr:'guide'},
     {icon:'📝',label:'코칭 기록',scr:'records'},
-    {icon:'📅',label:'캘린더',scr:'calendar'},
     {icon:'📈',label:'성장 히스토리',scr:'history'},
     {icon:'💡',label:'질문 라이브러리',scr:'questions'},
     {icon:'🎯',label:'1on1 미팅 프레임',scr:'grow'},
-    {icon:'📘',label:'코칭 허브 사용 가이드',scr:'guide'},
     {icon:'🆘',label:'위기 대응 위키',scr:'troubleshoot'},
     {icon:'⚙️',label:'마이페이지',scr:'mypage'},
   ];
@@ -775,7 +774,7 @@ function App(){
         </div>
         <div className="sidebar-section">
           <div className="sidebar-section-title">도구</div>
-          {sidebarItems.slice(4,8).map((item,i)=>(
+          {sidebarItems.slice(4,7).map((item,i)=>(
             <div key={i} className={`sidebar-item ${scr===item.scr?'on':''}`} onClick={()=>navTo(item.scr)}>
               <span className="sidebar-item-icon">{item.icon}</span>
               {item.label}
@@ -784,7 +783,7 @@ function App(){
         </div>
         <div className="sidebar-section">
           <div className="sidebar-section-title">관리</div>
-          {sidebarItems.slice(8).map((item,i)=>(
+          {sidebarItems.slice(7).map((item,i)=>(
             <div key={i} className={`sidebar-item ${scr===item.scr?'on':''}`} onClick={()=>navTo(item.scr)}>
               <span className="sidebar-item-icon">{item.icon}</span>
               {item.label}
@@ -802,7 +801,7 @@ function App(){
   const renderTopbar=()=>(
     <div className="topbar">
       <div className="topbar-title">
-        {scr==='home'?'대시보드':scr==='records'?'코칭 기록':scr==='history'?'성장 히스토리':scr==='questions'?'질문 라이브러리':scr==='grow'?'1on1 미팅 프레임':scr==='guide'?'코칭 허브 사용 가이드':scr==='troubleshoot'?'위기 대응 위키':scr==='mypage'?'마이페이지':'캘린더'}
+        {scr==='home'?'대시보드':scr==='records'?'코칭 기록':scr==='history'?'성장 히스토리':scr==='questions'?'질문 라이브러리':scr==='grow'?'1on1 미팅 프레임':scr==='guide'?'코칭 허브 사용 가이드':scr==='troubleshoot'?'위기 대응 위키':scr==='mypage'?'마이페이지':'대시보드'}
       </div>
       <div className="topbar-search">
         <input type="text" placeholder="🔍 기록 검색..." />
@@ -1084,34 +1083,39 @@ if(isDesktop){
         </div>
       </div>
     </div>
-    {ddDetail&&(<div style={{position:'fixed',top:0,left:0,width:'100vw',height:'100vh',background:'rgba(0,0,0,.5)',zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={e=>e.target===e.currentTarget&&setDdDetail(null)}>
-      <div style={{background:'#fff',borderRadius:20,padding:28,width:'100%',maxWidth:520,maxHeight:'80vh',overflowY:'auto',boxShadow:'0 24px 64px rgba(0,0,0,.25)'}}>
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
-          <div style={{fontSize:20,fontWeight:800,color:'#1a202c'}}>{ddDetail.mood} {ddDetail.member}</div>
-          <button onClick={()=>setDdDetail(null)} style={{background:'none',border:'none',fontSize:22,cursor:'pointer',color:'#a0aec0'}}>✕</button>
+    {ddDetail&&(<div style={{position:'fixed',top:0,left:0,width:'100vw',height:'100vh',background:'rgba(0,0,0,.45)',zIndex:9999,display:'flex',justifyContent:'flex-end'}} onClick={e=>e.target===e.currentTarget&&setDdDetail(null)}>
+      <div style={{background:'#fff',width:'100%',maxWidth:480,height:'100vh',overflowY:'auto',boxShadow:'-8px 0 32px rgba(0,0,0,.15)',display:'flex',flexDirection:'column'}}>
+        <div style={{position:'sticky',top:0,zIndex:1,background:'linear-gradient(135deg,#1e3a5f 0%,#0a5c7d 100%)',color:'#fff',padding:'20px 24px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <div>
+            <div style={{fontSize:18,fontWeight:800}}>{ddDetail.mood} {ddDetail.member}</div>
+            <div style={{fontSize:12,opacity:.7,marginTop:2}}>{ddDetail.date} · {ddDetail.duration}</div>
+          </div>
+          <button onClick={()=>setDdDetail(null)} style={{background:'rgba(255,255,255,.15)',border:'none',color:'#fff',width:36,height:36,borderRadius:'50%',fontSize:18,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
         </div>
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:16}}>
-          <div className="fg"><label style={{fontSize:12,fontWeight:700,color:'#4a5568',marginBottom:4,display:'block'}}>날짜</label><div style={{padding:'10px 14px',background:'#f7fafc',borderRadius:10,fontSize:14,color:'#1a202c'}}>{ddDetail.date}</div></div>
-          <div className="fg"><label style={{fontSize:12,fontWeight:700,color:'#4a5568',marginBottom:4,display:'block'}}>미팅 시간</label><div style={{padding:'10px 14px',background:'#f7fafc',borderRadius:10,fontSize:14,color:'#1a202c'}}>{ddDetail.duration}</div></div>
+        <div style={{flex:1,padding:24}}>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:20}}>
+            <div><label style={{fontSize:11,fontWeight:700,color:'#718096',marginBottom:4,display:'block'}}>날짜</label><div style={{padding:'10px 14px',background:'#f7fafc',borderRadius:10,fontSize:14,fontWeight:600,color:'#1a202c'}}>{ddDetail.date}</div></div>
+            <div><label style={{fontSize:11,fontWeight:700,color:'#718096',marginBottom:4,display:'block'}}>미팅 시간</label><div style={{padding:'10px 14px',background:'#f7fafc',borderRadius:10,fontSize:14,fontWeight:600,color:'#1a202c'}}>{ddDetail.duration}</div></div>
+          </div>
+          <div style={{marginBottom:20}}>
+            <label style={{fontSize:11,fontWeight:700,color:'#718096',marginBottom:4,display:'block'}}>구성원 컨디션</label>
+            <div style={{fontSize:32,padding:'4px 0'}}>{ddDetail.mood}</div>
+          </div>
+          <div style={{marginBottom:20}}>
+            <label style={{fontSize:11,fontWeight:700,color:'#718096',marginBottom:6,display:'block'}}>주요 주제</label>
+            <div style={{padding:'14px 16px',background:'#f7fafc',borderRadius:12,fontSize:14,color:'#1a202c',lineHeight:1.7,border:'1px solid #edf2f7'}}>{ddDetail.keyTopic}</div>
+          </div>
+          <div style={{marginBottom:20}}>
+            <label style={{fontSize:11,fontWeight:700,color:'#718096',marginBottom:6,display:'block'}}>내가 말한 비율</label>
+            <div style={{textAlign:'center',fontSize:28,fontWeight:800,color:'#1e3a5f',marginBottom:8}}>{ddDetail.talkRatio}% {ddDetail.talkRatio<=20?'🏆':ddDetail.talkRatio<=30?'👍':ddDetail.talkRatio<=50?'⚠️':'😅'}</div>
+            <div style={{height:12,background:'#edf2f7',borderRadius:8,overflow:'hidden'}}><div style={{height:'100%',borderRadius:8,background:ddDetail.talkRatio<=30?'linear-gradient(90deg,#38a169,#68d391)':'linear-gradient(90deg,#dd6b20,#f6ad55)',width:ddDetail.talkRatio+'%',transition:'width .3s'}}/></div>
+            <div style={{display:'flex',justifyContent:'space-between',fontSize:10,color:'#a0aec0',marginTop:6}}><span>5% 경청</span><span>목표 20~30%</span><span>80%</span></div>
+          </div>
+          {ddDetail.nextAction&&<div style={{marginBottom:20}}><label style={{fontSize:11,fontWeight:700,color:'#718096',marginBottom:6,display:'block'}}>다음 액션</label><div style={{padding:'14px 16px',background:'#f7fafc',borderRadius:12,fontSize:14,color:'#1a202c',lineHeight:1.7,border:'1px solid #edf2f7'}}>{ddDetail.nextAction}</div></div>}
+          {ddDetail.memo&&<div style={{marginBottom:20}}><label style={{fontSize:11,fontWeight:700,color:'#718096',marginBottom:6,display:'block'}}>🔒 내 메모</label><div style={{padding:'14px 16px',background:'#f7fafc',borderRadius:12,fontSize:14,color:'#1a202c',lineHeight:1.7,border:'1px solid #edf2f7'}}>{ddDetail.memo}</div></div>}
         </div>
-        <div style={{marginBottom:16}}>
-          <label style={{fontSize:12,fontWeight:700,color:'#4a5568',marginBottom:4,display:'block'}}>구성원 컨디션</label>
-          <div style={{fontSize:28}}>{ddDetail.mood}</div>
-        </div>
-        <div style={{marginBottom:16}}>
-          <label style={{fontSize:12,fontWeight:700,color:'#4a5568',marginBottom:4,display:'block'}}>주요 주제</label>
-          <div style={{padding:'12px 14px',background:'#f7fafc',borderRadius:10,fontSize:14,color:'#1a202c',lineHeight:1.6}}>{ddDetail.keyTopic}</div>
-        </div>
-        <div style={{marginBottom:16}}>
-          <label style={{fontSize:12,fontWeight:700,color:'#4a5568',marginBottom:4,display:'block'}}>내가 말한 비율</label>
-          <div style={{textAlign:'center',fontSize:24,fontWeight:800,color:'#1e3a5f',marginBottom:6}}>{ddDetail.talkRatio}% {ddDetail.talkRatio<=20?'🏆':ddDetail.talkRatio<=30?'👍':ddDetail.talkRatio<=50?'⚠️':'😅'}</div>
-          <div style={{height:10,background:'#edf2f7',borderRadius:8,overflow:'hidden'}}><div style={{height:'100%',borderRadius:8,background:ddDetail.talkRatio<=30?'linear-gradient(90deg,#38a169,#68d391)':'linear-gradient(90deg,#dd6b20,#f6ad55)',width:ddDetail.talkRatio+'%',transition:'width .3s'}}/></div>
-          <div style={{display:'flex',justifyContent:'space-between',fontSize:10,color:'#a0aec0',marginTop:4}}><span>5% 경청</span><span>목표 20~30%</span><span>80%</span></div>
-        </div>
-        {ddDetail.nextAction&&<div style={{marginBottom:16}}><label style={{fontSize:12,fontWeight:700,color:'#4a5568',marginBottom:4,display:'block'}}>다음 액션</label><div style={{padding:'12px 14px',background:'#f7fafc',borderRadius:10,fontSize:14,color:'#1a202c',lineHeight:1.6}}>{ddDetail.nextAction}</div></div>}
-        {ddDetail.memo&&<div style={{marginBottom:16}}><label style={{fontSize:12,fontWeight:700,color:'#4a5568',marginBottom:4,display:'block'}}>🔒 내 메모</label><div style={{padding:'12px 14px',background:'#f7fafc',borderRadius:10,fontSize:14,color:'#1a202c',lineHeight:1.6}}>{ddDetail.memo}</div></div>}
-        <div style={{display:'flex',gap:10,marginTop:20}}>
-          <button className="btn btn-ghost" style={{flex:1}} onClick={()=>{setDdDetail(null);nav('records')}}>📝 기록 탭에서 수정</button>
+        <div style={{padding:'16px 24px',borderTop:'1px solid #edf2f7',display:'flex',gap:10,background:'#fff'}}>
+          <button className="btn btn-ghost" style={{flex:1}} onClick={()=>{setDdDetail(null);nav('records')}}>📝 수정하기</button>
           <button className="btn btn-primary" style={{flex:1}} onClick={()=>setDdDetail(null)}>닫기</button>
         </div>
       </div>
@@ -1580,7 +1584,6 @@ const cells=[];
 for(let i=0;i<startDay;i++)cells.push(null);
 for(let d=1;d<=days;d++)cells.push(d);
 while(cells.length%7!==0)cells.push(null);
-if(cells.length>=7&&cells.slice(-7).every(c=>c===null))cells.splice(-7);
 function prev(){const nm=m===1?12:m-1;const ny=m===1?y-1:y;setViewMonth(ny+'-'+String(nm).padStart(2,'0'))}
 function next(){const nm=m===12?1:m+1;const ny=m===12?y+1:y;setViewMonth(ny+'-'+String(nm).padStart(2,'0'))}
 function fmt(d){return viewMonth+'-'+String(d).padStart(2,'0')}
