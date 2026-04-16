@@ -798,19 +798,7 @@ function App(){
     </div>
   );
   
-  const renderTopbar=()=>(
-    <div className="topbar">
-      <div className="topbar-title">
-        {scr==='home'?'대시보드':scr==='records'?'코칭 기록':scr==='history'?'성장 히스토리':scr==='questions'?'질문 라이브러리':scr==='grow'?'1on1 미팅 프레임':scr==='guide'?'코칭 허브 사용 가이드':scr==='troubleshoot'?'위기 대응 위키':scr==='mypage'?'마이페이지':'대시보드'}
-      </div>
-      <div className="topbar-search">
-        <input type="text" placeholder="🔍 기록 검색..." />
-      </div>
-      <div className="topbar-actions">
-        <button className="btn btn-sm btn-primary" onClick={()=>setScr('form')}>+ 새 1on1</button>
-      </div>
-    </div>
-  );
+  /* topbar removed */
   
   let screenComp=null;
   switch(scr){
@@ -830,7 +818,6 @@ function App(){
     <div className={`app ${isDesktop?'desktop':'mobile'}`}>
       {isDesktop&&renderSidebar()}
       <div className="main-content">
-        {isDesktop&&renderTopbar()}
         {screenComp}
       </div>
       {!isDesktop&&(
@@ -1002,6 +989,14 @@ if(isDesktop){
   const recentRecs=records.slice(0,5);
 
   return(<div className="desk-dash">
+    {/* Welcome message */}
+    <div style={{marginBottom:24,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+      <div>
+        <div style={{fontSize:22,fontWeight:800,color:'#1a202c'}}>👋 {me.name} {me.position||'팀장'}님, 반갑습니다!</div>
+        <div style={{fontSize:13,color:'#718096',marginTop:4}}>오늘도 팀원의 성장을 위한 코칭을 시작해볼까요?</div>
+      </div>
+      <button className="btn btn-sm btn-primary" style={{whiteSpace:'nowrap'}} onClick={()=>nav('form')}>+ 새 1on1 기록</button>
+    </div>
     {/* 4-column stat cards */}
     <div className="dd-grid">
       <div className="dd-card">
@@ -1279,193 +1274,174 @@ return(<div className="scr">
 
 /* ═══ GUIDE SCREEN ═══ */
 function GuideScreen({nav}){
-const[openSec,setOpenSec]=useState(null);
 const BILL_PHOTO='https://upload.wikimedia.org/wikipedia/en/thumb/9/93/Bill_Campbell_%28business_executive%29.jpg/220px-Bill_Campbell_%28business_executive%29.jpg';
-const sections=[
-  {id:'intro',icon:'🏈',title:'빌 캠벨 코칭 허브란?',content:()=>(
-    <div>
-      <div style={{fontSize:13,color:'#4a5568',lineHeight:1.8,marginBottom:16}}>
-        빌 캠벨 코칭 허브는 GC케어·GC메디아이 팀장들이 <strong style={{color:'#1e3a5f'}}>1on1 미팅을 통해 팀원의 성장을 이끄는 코칭 리더</strong>로 성장할 수 있도록 설계된 디지털 코칭 플랫폼입니다.
-      </div>
-      <div style={{background:'linear-gradient(135deg,#ebf8ff,#e6fffa)',borderRadius:14,padding:16,marginBottom:14,border:'1.5px solid #bee3f8'}}>
-        <div style={{fontSize:13,fontWeight:800,color:'#1e3a5f',marginBottom:8}}>핵심 철학 3가지</div>
-        <div style={{display:'flex',gap:8}}>
-          <div style={{flex:1,background:'#fff',borderRadius:10,padding:12,textAlign:'center'}}>
-            <div style={{fontSize:24,marginBottom:4}}>👂</div>
-            <div style={{fontSize:12,fontWeight:800,color:'#1e3a5f'}}>80% 경청</div>
-            <div style={{fontSize:11,color:'#718096',marginTop:2}}>팀원의 말을 먼저 들으세요</div>
-          </div>
-          <div style={{flex:1,background:'#fff',borderRadius:10,padding:12,textAlign:'center'}}>
-            <div style={{fontSize:24,marginBottom:4}}>💛</div>
-            <div style={{fontSize:12,fontWeight:800,color:'#1e3a5f'}}>사람이 먼저</div>
-            <div style={{fontSize:11,color:'#718096',marginTop:2}}>성과보다 사람을 먼저 돌보세요</div>
-          </div>
-          <div style={{flex:1,background:'#fff',borderRadius:10,padding:12,textAlign:'center'}}>
-            <div style={{fontSize:24,marginBottom:4}}>🌱</div>
-            <div style={{fontSize:12,fontWeight:800,color:'#1e3a5f'}}>팀원의 성장</div>
-            <div style={{fontSize:11,color:'#718096',marginTop:2}}>팀원의 성장이 곧 팀장의 성과입니다</div>
-          </div>
-        </div>
-      </div>
-      <div style={{fontSize:12,color:'#718096',lineHeight:1.7}}>
-        이 플랫폼은 실리콘밸리의 전설적인 코치 <strong>빌 캠벨</strong>의 코칭 철학을 기반으로 합니다. 코칭은 특별한 기술이 아닙니다. 진심으로 상대에게 관심을 갖고, 올바른 질문을 던지고, 끝까지 들어주는 것입니다.
-      </div>
-    </div>
-  )},
-  {id:'why',icon:'💡',title:'왜 1on1 미팅을 해야 할까요?',content:()=>(
-    <div>
-      <div style={{display:'flex',gap:10,marginBottom:14}}>
-        <div style={{flex:1,background:'#fff5f5',border:'2px solid #fed7d7',borderRadius:12,padding:14,textAlign:'center'}}>
-          <h4 style={{fontSize:13,fontWeight:800,color:'#e53e3e',marginBottom:8}}>❌ 기존 면담</h4>
-          <div style={{fontSize:12,color:'#4a5568',lineHeight:1.8,textAlign:'left'}}>
-            <div>• 과거 실적 평가 중심</div>
-            <div>• 1년에 1~2회 형식적 진행</div>
-            <div>• 팀장이 80% 이상 말함</div>
-            <div>• 결과: 긴장, 방어, 형식적 대화</div>
-            <div>• 팀원은 수동적으로 앉아 있음</div>
-          </div>
-        </div>
-        <div style={{flex:1,background:'#f0fff4',border:'2px solid #c6f6d5',borderRadius:12,padding:14,textAlign:'center'}}>
-          <h4 style={{fontSize:13,fontWeight:800,color:'#38a169',marginBottom:8}}>✅ 빌 캠벨식 1on1</h4>
-          <div style={{fontSize:12,color:'#4a5568',lineHeight:1.8,textAlign:'left'}}>
-            <div>• 미래 성장과 발전 중심</div>
-            <div>• 정기적 (격주~매주)</div>
-            <div>• 팀원이 80% 말함</div>
-            <div>• 결과: 신뢰, 몰입, 자발적 성장</div>
-            <div>• 팀원이 스스로 답을 찾아감</div>
-          </div>
-        </div>
-      </div>
-      <div style={{textAlign:'center',fontSize:15,fontWeight:800,color:'#1e3a5f',margin:'12px 0'}}>면담 → 코칭으로의 전환 🔄</div>
-      <div style={{background:'#fffff0',borderRadius:12,padding:14,border:'1.5px solid #f6e05e',marginBottom:14}}>
-        <div style={{fontSize:12,fontWeight:800,color:'#744210',marginBottom:6}}>📊 데이터가 증명합니다</div>
-        <div style={{fontSize:12,color:'#4a5568',lineHeight:1.8}}>
-          <div><strong>구글 프로젝트 옥시젠:</strong> 좋은 관리자의 #1 조건은 "정기적인 1on1을 하는 코치형 리더"</div>
-          <div><strong>갤럽 리서치:</strong> 정기적 1on1을 하는 팀의 직원 몰입도는 3배 높음</div>
-          <div><strong>하버드 비즈니스 리뷰:</strong> 코칭형 리더의 팀은 이직률이 40% 낮음</div>
-          <div><strong>빌 캠벨이 코칭한 기업들:</strong> Apple, Google, Amazon 등 시가총액 합산 수천조 원</div>
-        </div>
-      </div>
-      <div style={{fontSize:12,color:'#718096',lineHeight:1.7}}>
-        1on1은 팀원을 위한 시간입니다. 팀장의 보고 시간이 아닙니다. 팀원이 80% 말하고, 팀장은 20%만 질문하세요. 그 20%의 질문이 팀원의 성장을 결정합니다.
-      </div>
-    </div>
-  )},
-  {id:'legend',icon:'🏆',title:'전설의 코치, 빌 캠벨 이야기',content:()=>(
-    <div>
-      <div style={{background:'linear-gradient(135deg,#0f2444,#1a3a6b)',borderRadius:14,padding:16,color:'#fff',marginBottom:14}}>
-        <div style={{display:'flex',gap:8,marginBottom:12}}>
-          <div style={{flex:1,background:'rgba(255,255,255,.08)',borderRadius:10,padding:10,textAlign:'center'}}>
-            <div style={{fontSize:20,marginBottom:4}}>🍎</div>
-            <div style={{fontSize:11,fontWeight:800}}>스티브 잡스</div>
-            <div style={{fontSize:9,opacity:.6,marginTop:2}}>Apple CEO · "내 인생의 코치"</div>
-          </div>
-          <div style={{flex:1,background:'rgba(255,255,255,.08)',borderRadius:10,padding:10,textAlign:'center'}}>
-            <div style={{fontSize:20,marginBottom:4}}>🔍</div>
-            <div style={{fontSize:11,fontWeight:800}}>래리 페이지</div>
-            <div style={{fontSize:9,opacity:.6,marginTop:2}}>Google 창업자 · 10년간 전담 코치</div>
-          </div>
-          <div style={{flex:1,background:'rgba(255,255,255,.08)',borderRadius:10,padding:10,textAlign:'center'}}>
-            <div style={{fontSize:20,marginBottom:4}}>📦</div>
-            <div style={{fontSize:11,fontWeight:800}}>제프 베조스</div>
-            <div style={{fontSize:9,opacity:.6,marginTop:2}}>Amazon CEO · 숨겨진 멘토</div>
-          </div>
-        </div>
-        <div style={{fontSize:12,lineHeight:1.7,opacity:.85,borderTop:'1px solid rgba(255,255,255,.12)',paddingTop:10,fontStyle:'italic'}}>
-          "빌은 나에게 리더십이 기술이 아니라는 것을 가르쳐줬다. 그것은 사람을 진심으로 사랑하는 것이다." — 에릭 슈미트, 前 Google CEO
-        </div>
-      </div>
-      <div style={{fontSize:12,color:'#4a5568',lineHeight:1.8,marginBottom:14}}>
-        빌 캠벨은 컬럼비아대학교 미식축구 코치 출신으로, 실리콘밸리에서 가장 영향력 있는 경영 코치가 되었습니다. 그가 코칭한 기업들의 시가총액 합산은 수천조 원에 달합니다.
-      </div>
-      <div style={{fontSize:12,color:'#4a5568',lineHeight:1.8,marginBottom:14}}>
-        그는 돈을 받지 않고 오직 사람에 대한 진심으로 코칭했습니다. 그의 유일한 원칙은 단 하나, <strong style={{color:'#1e3a5f'}}>"사람이 먼저다"</strong>였습니다. 그가 만든 심리적 안전감 위에서 세계 최고의 기업들이 탄생했습니다.
-      </div>
-      <div style={{background:'#f0fff4',borderRadius:12,padding:14,border:'1.5px solid #c6f6d5'}}>
-        <div style={{fontSize:12,fontWeight:800,color:'#234e52',marginBottom:6}}>빌 캠벨의 코칭 원칙</div>
-        <div style={{fontSize:12,color:'#2c7a7b',lineHeight:1.8}}>
-          <div>1. <strong>경청이 최고의 코칭이다</strong> — 80%는 듣고, 20%만 질문하라</div>
-          <div>2. <strong>사람이 먼저다</strong> — 전략보다 사람에 집중하라</div>
-          <div>3. <strong>팀원의 성장이 곧 팀장의 성과다</strong></div>
-          <div>4. <strong>심리적 안전감이 모든 것의 기초다</strong></div>
-          <div>5. <strong>진짜 코칭은 답을 주는 게 아니라 스스로 답을 찾게 돕는 것이다</strong></div>
-        </div>
-      </div>
-    </div>
-  )},
-  {id:'howto',icon:'📱',title:'코칭 허브 사용 가이드 (5단계)',content:()=>(
-    <div>
-      {[
-        {num:1,icon:"👥",title:"팀원 등록하기",desc:"회원가입 시 구성원 수를 입력하면 월별 1on1 목표가 자동 계산됩니다. 마이페이지에서 언제든 수정할 수 있어요.",detail:"초급(월 1회/인), 중급(월 2회/인), 고급(월 4회/인) 중 본인의 레벨을 선택하세요. 처음이라면 초급부터 시작하는 것을 추천합니다. 구성원 수 × 레벨별 횟수 = 월간 목표가 됩니다."},
-        {num:2,icon:"💡",title:"오늘의 질문 확인하기",desc:"대시보드에서 매일 새로운 추천 질문을 확인하세요. 마중물 질문으로 활용하면 대화가 자연스럽게 시작됩니다.",detail:"45개 이상의 질문이 8개 카테고리(일상, 성과, 커리어, 갈등, 온보딩, 웰빙, 피드백, 아이스브레이킹)로 분류되어 있습니다. 쉬움/보통/어려움 난이도로 상황에 맞게 선택하세요."},
-        {num:3,icon:"🎯",title:"1on1 미팅 실행하기",desc:"미팅 전 질문 카드 1개를 선택하고, 미팅 중에는 80% 경청 + 20% 질문을 실천하세요.",detail:"GROW 모델(Goal→Reality→Options→Will)로 대화를 구조화할 수 있습니다. 도구 메뉴의 '1on1 미팅 프레임'에서 상세 가이드를 확인하세요. 미팅 시간은 15~30분이 적절합니다. 침묵이 올 때 7초를 기다려보세요. 그 침묵 뒤에 진짜 이야기가 나옵니다."},
-        {num:4,icon:"📝",title:"기록하기 (핵심!)",desc:"미팅이 끝나면 바로 + 버튼으로 기록하세요. 구성원 이름, 핵심 주제, 내 말하기 비율, 다음 액션을 기록합니다.",detail:"기록은 5분 이내로 빠르게! 핵심 주제는 한 줄 요약, 다음 액션은 구체적으로 작성하세요. 내 말하기 비율은 30% 이하가 목표입니다. 비공개 메모에는 팀원에게 직접 말하기 어려운 관찰 사항이나 다음 미팅 때 확인할 내용을 적어두세요."},
-        {num:5,icon:"📈",title:"성장 확인하기",desc:"성장 히스토리에서 배지와 월별 타임라인으로 나의 코칭 성장을 확인하세요. 🌱→🔥→⭐→🏅→🏆 배지를 모아보세요!",detail:"15개의 성장 배지가 준비되어 있습니다. 첫 코칭, 경청 마스터, 심층 코치, 전원 케어 등 다양한 성취를 축하합니다. 월별 타임라인에서 평균 발화 비율 추이를 확인하며 경청 능력의 성장을 체감하세요."},
-      ].map((s,i)=>(
-        <div key={i} style={{marginBottom:14,background:'#fff',borderRadius:14,padding:16,border:'2px solid #e2e8f0'}}>
-          <div style={{display:'flex',gap:12,alignItems:'flex-start'}}>
-            <div style={{fontSize:32,minWidth:50,textAlign:'center'}}>{s.icon}</div>
-            <div style={{flex:1}}>
-              <div style={{fontSize:14,fontWeight:800,color:'#1e3a5f',marginBottom:4}}>STEP {s.num}: {s.title}</div>
-              <div style={{fontSize:12,color:'#4a5568',lineHeight:1.7,marginBottom:6}}>{s.desc}</div>
-              <div style={{fontSize:11,color:'#718096',lineHeight:1.7,background:'#f7fafc',borderRadius:8,padding:10}}>{s.detail}</div>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  )},
-  {id:'tips',icon:'🔑',title:'효과적인 1on1을 위한 실전 팁',content:()=>(
-    <div>
-      {[
-        {emoji:'⏰',title:'정기적인 리듬 만들기',desc:'같은 요일, 같은 시간에 1on1을 고정하세요. 예측 가능한 리듬이 심리적 안전감을 만듭니다. 절대 취소하지 마세요 - 팀원에게 "당신은 중요하지 않다"는 메시지를 보내는 것입니다.'},
-        {emoji:'🤫',title:'침묵을 두려워하지 마세요',desc:'질문 후 7초의 침묵을 견디세요. 팀원이 생각할 시간을 주는 것입니다. 침묵 뒤에 진짜 이야기가 나옵니다. "더 이야기해주세요"라는 한마디가 문을 열어줍니다.'},
-        {emoji:'📋',title:'액션 아이템을 반드시 정하세요',desc:'모든 1on1은 구체적인 다음 스텝으로 끝나야 합니다. "다음 주까지 ~를 해보겠다"는 약속을 팀원이 직접 말하게 하세요. 다음 1on1에서 반드시 확인합니다.'},
-        {emoji:'❌',title:'이것만은 하지 마세요',desc:'업무 보고를 받지 마세요 (별도 회의로). 충고나 해결책을 먼저 제시하지 마세요. 다른 팀원과 비교하지 마세요. 1on1 내용을 다른 곳에 공유하지 마세요.'},
-        {emoji:'💪',title:'꾸준함이 핵심입니다',desc:'완벽한 1on1보다 꾸준한 1on1이 100배 중요합니다. 처음에는 어색할 수 있습니다. 3~4회를 넘기면 팀원이 먼저 대화를 이끌기 시작합니다.'},
-      ].map((tip,i)=>(
-        <div key={i} style={{display:'flex',gap:12,marginBottom:14,padding:14,background:'#fff',borderRadius:12,border:'1px solid #e2e8f0'}}>
-          <div style={{fontSize:24,flexShrink:0}}>{tip.emoji}</div>
-          <div>
-            <div style={{fontSize:13,fontWeight:800,color:'#1e3a5f',marginBottom:4}}>{tip.title}</div>
-            <div style={{fontSize:12,color:'#4a5568',lineHeight:1.7}}>{tip.desc}</div>
-          </div>
-        </div>
-      ))}
-    </div>
-  )},
-  {id:'crisis',icon:'🆘',title:'위기 상황 가이드',content:()=>(
-    <div>
-      <div style={{fontSize:13,color:'#4a5568',lineHeight:1.8,marginBottom:14}}>
-        1on1 중 연봉, 이직, 팀 갈등 등 어려운 주제가 나올 수 있습니다. 이때 당황하지 말고 빌 캠벨의 원칙을 기억하세요: <strong style={{color:'#1e3a5f'}}>"먼저 들어라, 그리고 공감하라."</strong>
-      </div>
-      <div style={{background:'#fff5f5',borderRadius:12,padding:14,border:'1.5px solid #fed7d7',marginBottom:14}}>
-        <div style={{fontSize:12,fontWeight:800,color:'#c53030',marginBottom:6}}>위기 대응 3원칙</div>
-        <div style={{fontSize:12,color:'#4a5568',lineHeight:1.8}}>
-          <div>1. <strong>즉시 반응하지 마세요</strong> — 3초 멈추고 깊게 호흡하세요</div>
-          <div>2. <strong>감정을 먼저 받아주세요</strong> — "그런 생각이 드는 것은 자연스러운 것 같아요"</div>
-          <div>3. <strong>해결책보다 경청을</strong> — 답을 주려 하지 말고 끝까지 들으세요</div>
-        </div>
-      </div>
-      <button className="btn btn-accent" onClick={()=>nav('troubleshoot')} style={{width:'100%'}}>🆘 위기 대응 위키 자세히 보기 →</button>
-    </div>
-  )},
-];
-
-return(<div className="scr">
+return(<div className="scr" style={{maxWidth:720,margin:'0 auto'}}>
   <div className="scr-hdr"><button className="back" onClick={()=>nav("home")}>←</button><span className="scr-title">📘 코칭 허브 사용 가이드</span></div>
-  <div style={{fontSize:13,color:'#4a5568',lineHeight:1.7,marginBottom:20}}>빌 캠벨의 코칭 철학과 이 허브를 200% 활용하는 방법을 알려드립니다.</div>
-  {sections.map(sec=>(
-    <div key={sec.id} style={{marginBottom:12,background:'#fff',borderRadius:16,overflow:'hidden',boxShadow:'0 2px 8px rgba(0,0,0,.06)'}}>
-      <div onClick={()=>setOpenSec(openSec===sec.id?null:sec.id)} style={{padding:'16px 18px',display:'flex',alignItems:'center',gap:12,cursor:'pointer',background:openSec===sec.id?'linear-gradient(135deg,#ebf8ff,#f0fff4)':'#fff'}}>
-        <span style={{fontSize:22}}>{sec.icon}</span>
-        <span style={{flex:1,fontSize:14,fontWeight:800,color:'#1e3a5f'}}>{sec.title}</span>
-        <span style={{fontSize:16,color:'#718096',transform:openSec===sec.id?'rotate(180deg)':'none',transition:'transform .2s'}}>▼</span>
+
+  {/* ── 1. 인트로 ── */}
+  <div style={{fontSize:14,color:'#4a5568',lineHeight:1.9,marginBottom:28}}>
+    이 가이드는 GC케어·GC메디아이 팀장들이 <strong style={{color:'#1e3a5f'}}>1on1 미팅을 통해 팀원의 성장을 이끄는 코칭 리더</strong>로 성장할 수 있도록 설계된 코칭 플랫폼의 안내서입니다. 빌 캠벨의 코칭 철학을 바탕으로, 누구나 쉽게 따라할 수 있는 실전 코칭 방법을 담았습니다.
+  </div>
+
+  {/* ── 2. 핵심 철학 ── */}
+  <div style={{background:'linear-gradient(135deg,#ebf8ff,#e6fffa)',borderRadius:16,padding:20,marginBottom:28,border:'1.5px solid #bee3f8'}}>
+    <div style={{fontSize:16,fontWeight:800,color:'#1e3a5f',marginBottom:14,textAlign:'center'}}>핵심 철학 3가지</div>
+    <div style={{display:'flex',gap:10}}>
+      <div style={{flex:1,background:'#fff',borderRadius:12,padding:16,textAlign:'center',boxShadow:'0 2px 8px rgba(0,0,0,.04)'}}>
+        <div style={{fontSize:28,marginBottom:6}}>👂</div>
+        <div style={{fontSize:13,fontWeight:800,color:'#1e3a5f'}}>80% 경청</div>
+        <div style={{fontSize:11,color:'#718096',marginTop:4,lineHeight:1.5}}>팀원의 말을 먼저 들으세요. 20%만 질문하세요.</div>
       </div>
-      {openSec===sec.id&&<div style={{padding:'0 18px 18px'}}>{sec.content()}</div>}
+      <div style={{flex:1,background:'#fff',borderRadius:12,padding:16,textAlign:'center',boxShadow:'0 2px 8px rgba(0,0,0,.04)'}}>
+        <div style={{fontSize:28,marginBottom:6}}>💛</div>
+        <div style={{fontSize:13,fontWeight:800,color:'#1e3a5f'}}>사람이 먼저</div>
+        <div style={{fontSize:11,color:'#718096',marginTop:4,lineHeight:1.5}}>성과보다 사람을 먼저 돌보세요.</div>
+      </div>
+      <div style={{flex:1,background:'#fff',borderRadius:12,padding:16,textAlign:'center',boxShadow:'0 2px 8px rgba(0,0,0,.04)'}}>
+        <div style={{fontSize:28,marginBottom:6}}>🌱</div>
+        <div style={{fontSize:13,fontWeight:800,color:'#1e3a5f'}}>팀원의 성장</div>
+        <div style={{fontSize:11,color:'#718096',marginTop:4,lineHeight:1.5}}>팀원의 성장이 곧 팀장의 성과입니다.</div>
+      </div>
     </div>
-  ))}
-  <button className="btn btn-primary" style={{marginTop:16}} onClick={()=>nav("home")}>코칭 시작하기 →</button>
+  </div>
+
+  {/* ── 3. 왜 1on1을 해야 하는가 ── */}
+  <div style={{marginBottom:28}}>
+    <div style={{fontSize:18,fontWeight:800,color:'#1e3a5f',marginBottom:14}}>💡 왜 1on1 미팅을 해야 할까요?</div>
+    <div style={{fontSize:13,color:'#4a5568',lineHeight:1.8,marginBottom:14}}>
+      1on1은 팀원을 위한 시간입니다. 팀장의 보고 시간이 아닙니다. 팀원이 80% 말하고, 팀장은 20%만 질문하세요. 그 20%의 질문이 팀원의 성장을 결정합니다.
+    </div>
+    <div style={{display:'flex',gap:12,marginBottom:16}}>
+      <div style={{flex:1,background:'#fff5f5',border:'2px solid #fed7d7',borderRadius:14,padding:16}}>
+        <div style={{fontSize:14,fontWeight:800,color:'#e53e3e',textAlign:'center',marginBottom:10}}>❌ 기존 면담</div>
+        <div style={{fontSize:12,color:'#4a5568',lineHeight:2}}>
+          <div>• 과거 실적 평가 중심</div>
+          <div>• 1년에 1~2회 형식적 진행</div>
+          <div>• 팀장이 80% 이상 말함</div>
+          <div>• 결과: 긴장, 방어, 형식적 대화</div>
+        </div>
+      </div>
+      <div style={{flex:1,background:'#f0fff4',border:'2px solid #c6f6d5',borderRadius:14,padding:16}}>
+        <div style={{fontSize:14,fontWeight:800,color:'#38a169',textAlign:'center',marginBottom:10}}>✅ 빌 캠벨식 1on1</div>
+        <div style={{fontSize:12,color:'#4a5568',lineHeight:2}}>
+          <div>• 미래 성장과 발전 중심</div>
+          <div>• 정기적 (격주~매주)</div>
+          <div>• 팀원이 80% 말함</div>
+          <div>• 결과: 신뢰, 몰입, 자발적 성장</div>
+        </div>
+      </div>
+    </div>
+    <div style={{background:'#fffff0',borderRadius:12,padding:16,border:'1.5px solid #f6e05e'}}>
+      <div style={{fontSize:13,fontWeight:800,color:'#744210',marginBottom:8}}>📊 데이터가 증명합니다</div>
+      <div style={{fontSize:12,color:'#4a5568',lineHeight:1.9}}>
+        <strong>구글 프로젝트 옥시젠:</strong> 좋은 관리자의 #1 조건은 "정기적인 1on1을 하는 코치형 리더"<br/>
+        <strong>갤럽 리서치:</strong> 정기적 1on1을 하는 팀의 직원 몰입도는 3배 높음<br/>
+        <strong>하버드 비즈니스 리뷰:</strong> 코칭형 리더의 팀은 이직률이 40% 낮음
+      </div>
+    </div>
+  </div>
+
+  {/* ── 4. 전설의 코치, 빌 캠벨 ── */}
+  <div style={{marginBottom:28}}>
+    <div style={{fontSize:18,fontWeight:800,color:'#1e3a5f',marginBottom:14}}>🏆 전설의 코치, 빌 캠벨 이야기</div>
+    <div style={{background:'linear-gradient(135deg,#0f2444,#1a3a6b)',borderRadius:16,padding:20,color:'#fff',marginBottom:16}}>
+      <div style={{display:'flex',gap:16,marginBottom:14}}>
+        <img src={BILL_PHOTO} alt="빌 캠벨" style={{width:100,height:120,borderRadius:12,objectFit:'cover',border:'2px solid rgba(255,255,255,.2)',flexShrink:0,boxShadow:'0 4px 12px rgba(0,0,0,.3)'}} onError={e=>{e.target.style.display='none'}}/>
+        <div>
+          <div style={{fontSize:15,fontWeight:800,marginBottom:6}}>빌 캠벨 (1940~2016)</div>
+          <div style={{fontSize:12,lineHeight:1.8,opacity:.85}}>
+            컬럼비아대학교 미식축구 코치 출신으로, 실리콘밸리에서 가장 영향력 있는 경영 코치가 되었습니다. 그가 코칭한 기업들의 시가총액 합산은 수천조 원에 달합니다.
+          </div>
+        </div>
+      </div>
+      <div style={{fontSize:12,lineHeight:1.8,opacity:.85,marginBottom:14}}>
+        그는 돈을 받지 않고 오직 사람에 대한 진심으로 코칭했습니다. 그의 유일한 원칙은 단 하나, <strong style={{color:'#90cdf4'}}>"사람이 먼저다"</strong>였습니다. 그가 만든 심리적 안전감 위에서 세계 최고의 기업들이 탄생했습니다.
+      </div>
+      <div style={{display:'flex',gap:8,marginBottom:14}}>
+        <div style={{flex:1,background:'rgba(255,255,255,.08)',borderRadius:10,padding:10,textAlign:'center'}}>
+          <div style={{fontSize:20,marginBottom:4}}>🍎</div>
+          <div style={{fontSize:11,fontWeight:800}}>스티브 잡스</div>
+          <div style={{fontSize:9,opacity:.6,marginTop:2}}>"내 인생의 코치"</div>
+        </div>
+        <div style={{flex:1,background:'rgba(255,255,255,.08)',borderRadius:10,padding:10,textAlign:'center'}}>
+          <div style={{fontSize:20,marginBottom:4}}>🔍</div>
+          <div style={{fontSize:11,fontWeight:800}}>래리 페이지</div>
+          <div style={{fontSize:9,opacity:.6,marginTop:2}}>10년간 전담 코치</div>
+        </div>
+        <div style={{flex:1,background:'rgba(255,255,255,.08)',borderRadius:10,padding:10,textAlign:'center'}}>
+          <div style={{fontSize:20,marginBottom:4}}>📦</div>
+          <div style={{fontSize:11,fontWeight:800}}>제프 베조스</div>
+          <div style={{fontSize:9,opacity:.6,marginTop:2}}>숨겨진 멘토</div>
+        </div>
+      </div>
+      <div style={{fontSize:12,lineHeight:1.7,opacity:.8,borderTop:'1px solid rgba(255,255,255,.12)',paddingTop:12,fontStyle:'italic'}}>
+        "빌은 나에게 리더십이 기술이 아니라는 것을 가르쳐줬다. 그것은 사람을 진심으로 사랑하는 것이다." — 에릭 슈미트, 前 Google CEO
+      </div>
+    </div>
+    <div style={{background:'#f0fff4',borderRadius:14,padding:16,border:'1.5px solid #c6f6d5'}}>
+      <div style={{fontSize:13,fontWeight:800,color:'#234e52',marginBottom:8}}>빌 캠벨의 코칭 5원칙</div>
+      <div style={{fontSize:12,color:'#2c7a7b',lineHeight:2}}>
+        1. <strong>경청이 최고의 코칭이다</strong> — 80%는 듣고, 20%만 질문하라<br/>
+        2. <strong>사람이 먼저다</strong> — 전략보다 사람에 집중하라<br/>
+        3. <strong>팀원의 성장이 곧 팀장의 성과다</strong><br/>
+        4. <strong>심리적 안전감이 모든 것의 기초다</strong><br/>
+        5. <strong>진짜 코칭은 답을 주는 게 아니라 스스로 답을 찾게 돕는 것이다</strong>
+      </div>
+    </div>
+  </div>
+
+  {/* ── 5. 코칭 허브 사용법 5단계 ── */}
+  <div style={{marginBottom:28}}>
+    <div style={{fontSize:18,fontWeight:800,color:'#1e3a5f',marginBottom:14}}>📱 코칭 허브 이렇게 사용하세요</div>
+    {[
+      {num:1,icon:"👥",title:"팀원 등록하기",desc:"회원가입 시 구성원 수를 입력하면 월별 1on1 목표가 자동 계산됩니다.",detail:"마이페이지에서 초급(월 1회/인), 중급(월 2회/인), 고급(월 4회/인) 중 본인의 레벨을 선택하세요. 처음이라면 초급부터 시작하는 것을 추천합니다."},
+      {num:2,icon:"💡",title:"오늘의 질문 확인하기",desc:"대시보드에서 매일 새로운 추천 질문을 확인하세요.",detail:"45개 이상의 질문이 8개 카테고리로 분류되어 있습니다. 마중물 질문으로 대화를 자연스럽게 시작할 수 있어요."},
+      {num:3,icon:"🎯",title:"1on1 미팅 실행하기",desc:"질문 카드 1개를 선택하고, 80% 경청 + 20% 질문을 실천하세요.",detail:"GROW 모델(G→R→O→W)로 대화를 구조화할 수 있습니다. 사이드바 '1on1 미팅 프레임'에서 상세 가이드를 확인하세요. 침묵이 올 때 7초를 기다려보세요."},
+      {num:4,icon:"📝",title:"기록하기 (핵심!)",desc:"미팅이 끝나면 바로 기록하세요. 5분이면 충분합니다.",detail:"구성원 이름, 핵심 주제, 내 말하기 비율, 다음 액션을 기록합니다. 목표는 말하기 비율 30% 이하! 비공개 메모에는 다음 미팅 때 확인할 내용을 적어두세요."},
+      {num:5,icon:"📈",title:"성장 확인하기",desc:"성장 히스토리에서 배지와 월별 타임라인을 확인하세요.",detail:"15개의 성장 배지가 준비되어 있습니다. 🌱→🔥→⭐→🏅→🏆 경청 마스터, 심층 코치 등 다양한 성취를 축하합니다."},
+    ].map((s,i)=>(
+      <div key={i} style={{display:'flex',gap:14,marginBottom:16,padding:16,background:'#fff',borderRadius:14,border:'1px solid #edf2f7',boxShadow:'0 1px 4px rgba(0,0,0,.04)'}}>
+        <div style={{width:48,height:48,borderRadius:12,background:'linear-gradient(135deg,#ebf8ff,#e6fffa)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:24,flexShrink:0}}>{s.icon}</div>
+        <div style={{flex:1}}>
+          <div style={{fontSize:14,fontWeight:800,color:'#1e3a5f',marginBottom:4}}>STEP {s.num}. {s.title}</div>
+          <div style={{fontSize:13,color:'#4a5568',lineHeight:1.7,marginBottom:4}}>{s.desc}</div>
+          <div style={{fontSize:12,color:'#718096',lineHeight:1.7}}>{s.detail}</div>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  {/* ── 6. 실전 팁 ── */}
+  <div style={{marginBottom:28}}>
+    <div style={{fontSize:18,fontWeight:800,color:'#1e3a5f',marginBottom:14}}>🔑 효과적인 1on1을 위한 실전 팁</div>
+    {[
+      {emoji:'⏰',title:'정기적인 리듬을 만드세요',desc:'같은 요일, 같은 시간에 1on1을 고정하세요. 예측 가능한 리듬이 심리적 안전감을 만듭니다. 절대 취소하지 마세요.'},
+      {emoji:'🤫',title:'침묵을 두려워하지 마세요',desc:'질문 후 7초의 침묵을 견디세요. 팀원이 생각할 시간을 주는 것입니다. "더 이야기해주세요"라는 한마디가 문을 열어줍니다.'},
+      {emoji:'📋',title:'액션 아이템을 반드시 정하세요',desc:'모든 1on1은 구체적인 다음 스텝으로 끝나야 합니다. 팀원이 직접 말하게 하세요. 다음 1on1에서 반드시 확인합니다.'},
+      {emoji:'❌',title:'이것만은 하지 마세요',desc:'업무 보고를 받지 마세요. 충고나 해결책을 먼저 제시하지 마세요. 다른 팀원과 비교하지 마세요. 1on1 내용을 다른 곳에 공유하지 마세요.'},
+      {emoji:'💪',title:'꾸준함이 핵심입니다',desc:'완벽한 1on1보다 꾸준한 1on1이 100배 중요합니다. 3~4회를 넘기면 팀원이 먼저 대화를 이끌기 시작합니다.'},
+    ].map((tip,i)=>(
+      <div key={i} style={{display:'flex',gap:12,marginBottom:12,padding:14,background:'#fff',borderRadius:12,border:'1px solid #edf2f7'}}>
+        <div style={{fontSize:22,flexShrink:0,marginTop:2}}>{tip.emoji}</div>
+        <div>
+          <div style={{fontSize:13,fontWeight:800,color:'#1e3a5f',marginBottom:3}}>{tip.title}</div>
+          <div style={{fontSize:12,color:'#4a5568',lineHeight:1.7}}>{tip.desc}</div>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  {/* ── 7. 위기 대응 ── */}
+  <div style={{background:'#fff5f5',borderRadius:14,padding:18,border:'1.5px solid #fed7d7',marginBottom:28}}>
+    <div style={{fontSize:15,fontWeight:800,color:'#c53030',marginBottom:10}}>🆘 위기 상황이 생기면?</div>
+    <div style={{fontSize:13,color:'#4a5568',lineHeight:1.8,marginBottom:12}}>
+      연봉, 이직, 팀 갈등 등 어려운 주제가 나올 때 — 먼저 3초 멈추고 깊게 호흡하세요. 감정을 먼저 받아주세요. 해결책보다 경청을 먼저 하세요.
+    </div>
+    <button className="btn btn-accent" onClick={()=>nav('troubleshoot')} style={{width:'100%'}}>위기 대응 위키 자세히 보기 →</button>
+  </div>
+
+  {/* ── CTA ── */}
+  <button className="btn btn-primary" style={{marginBottom:20}} onClick={()=>nav("home")}>코칭 시작하기 →</button>
 </div>);
 }
 
@@ -1633,6 +1609,7 @@ const filtered=records.filter(r=>{
 return(<div>
   <div className="scr">
     <div className="scr-hdr"><button className="back" onClick={()=>nav('home')}>←</button><span className="scr-title">1on1 기록</span></div>
+    <button className="btn btn-primary" style={{marginBottom:14,fontSize:15,padding:16}} onClick={onNew}>📝 새 1on1 기록하기</button>
     <MiniCal records={records} selDate={selDate} onSelect={setSelDate}/>
     <div className="tq">
       <div className="tq-lbl">💡 오늘의 추천 질문</div>
@@ -1646,34 +1623,43 @@ return(<div>
     <div className="search-wrap fg"><span className="search-icon">🔍</span><input value={q} onChange={e=>setQ(e.target.value)} placeholder="이름, 주제, 날짜로 검색"/></div>
     {filtered.length===0?(<div className="empty"><span className="empty-icon">{q||selDate?'🔍':'📝'}</span><p>{q||selDate?'검색 결과가 없습니다.':'아직 기록이 없습니다.'}</p></div>):filtered.map(r=><RecCard key={r.id} rec={r} onClick={()=>setDetail(r)}/>)}
   </div>
-  {detail&&(<div className="overlay" onClick={e=>e.target===e.currentTarget&&setDetail(null)}><div className="sheet">
-    <div className="sheet-handle"/>
-    <div style={{fontSize:18,fontWeight:800,marginBottom:16}}>{detail.mood} {detail.member}</div>
-    <div className="fg-row" style={{marginBottom:12}}>
-      <div className="fg"><label>날짜</label><div style={{padding:'10px 14px',background:'#f7fafc',borderRadius:12,fontSize:14,color:'#1a202c'}}>{detail.date}</div></div>
-      <div className="fg"><label>미팅 시간</label><div style={{padding:'10px 14px',background:'#f7fafc',borderRadius:12,fontSize:14,color:'#1a202c'}}>{detail.duration}</div></div>
+  {detail&&(<div style={{position:'fixed',top:0,left:0,width:'100vw',height:'100vh',background:'rgba(0,0,0,.45)',zIndex:9999,display:'flex',justifyContent:'flex-end'}} onClick={e=>e.target===e.currentTarget&&setDetail(null)}>
+    <div style={{background:'#fff',width:'100%',maxWidth:400,height:'100vh',overflowY:'auto',boxShadow:'-8px 0 32px rgba(0,0,0,.15)',display:'flex',flexDirection:'column'}}>
+      <div style={{position:'sticky',top:0,zIndex:1,background:'linear-gradient(135deg,#1e3a5f 0%,#0a5c7d 100%)',color:'#fff',padding:'18px 20px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+        <div>
+          <div style={{fontSize:17,fontWeight:800}}>{detail.mood} {detail.member}</div>
+          <div style={{fontSize:11,opacity:.7,marginTop:2}}>{detail.date} · {detail.duration}</div>
+        </div>
+        <button onClick={()=>setDetail(null)} style={{background:'rgba(255,255,255,.15)',border:'none',color:'#fff',width:34,height:34,borderRadius:'50%',fontSize:16,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
+      </div>
+      <div style={{flex:1,padding:20}}>
+        <div className="fg-row" style={{marginBottom:14}}>
+          <div className="fg"><label>날짜</label><div style={{padding:'10px 14px',background:'#f7fafc',borderRadius:12,fontSize:14,color:'#1a202c'}}>{detail.date}</div></div>
+          <div className="fg"><label>미팅 시간</label><div style={{padding:'10px 14px',background:'#f7fafc',borderRadius:12,fontSize:14,color:'#1a202c'}}>{detail.duration}</div></div>
+        </div>
+        <div className="fg" style={{marginBottom:14}}>
+          <label>구성원 컨디션</label>
+          <div style={{fontSize:28,padding:'4px 0'}}>{detail.mood}</div>
+        </div>
+        <div className="fg" style={{marginBottom:14}}>
+          <label>주요 주제</label>
+          <div style={{padding:'12px 14px',background:'#f7fafc',borderRadius:12,fontSize:14,color:'#1a202c',lineHeight:1.7,border:'1px solid #edf2f7'}}>{detail.keyTopic}</div>
+        </div>
+        <div className="fg" style={{marginBottom:14}}>
+          <label>내가 말한 비율</label>
+          <div className="ratio-preview">{detail.talkRatio}% {detail.talkRatio<=20?'🏆':detail.talkRatio<=30?'👍':detail.talkRatio<=50?'⚠️':'😅'}</div>
+          <div className="prog-wrap"><div className="prog-fill" style={{width:detail.talkRatio+'%'}}/></div>
+          <div className="range-lbl"><span>5% 경청</span><span>목표 20~30%</span><span>80%</span></div>
+        </div>
+        {detail.nextAction&&<div className="fg" style={{marginBottom:14}}><label>다음 액션</label><div style={{padding:'12px 14px',background:'#f7fafc',borderRadius:12,fontSize:14,color:'#1a202c',lineHeight:1.7,border:'1px solid #edf2f7'}}>{detail.nextAction}</div></div>}
+        {detail.memo&&<div className="fg" style={{marginBottom:14}}><label>🔒 내 메모</label><div style={{padding:'12px 14px',background:'#f7fafc',borderRadius:12,fontSize:14,color:'#1a202c',lineHeight:1.7,border:'1px solid #edf2f7'}}>{detail.memo}</div></div>}
+      </div>
+      <div style={{padding:'14px 20px',borderTop:'1px solid #edf2f7',display:'flex',gap:8,background:'#fff'}}>
+        <button className="btn btn-ghost" style={{flex:1}} onClick={()=>{onEdit(detail);setDetail(null)}}>✏️ 수정</button>
+        <button className="btn btn-danger" style={{flex:1}} onClick={()=>{if(window.confirm('삭제할까요?'))onDelete(detail.id)}}>🗑 삭제</button>
+      </div>
     </div>
-    <div className="fg" style={{marginBottom:12}}>
-      <label>구성원 컨디션</label>
-      <div style={{fontSize:28,padding:'4px 0'}}>{detail.mood}</div>
-    </div>
-    <div className="fg" style={{marginBottom:12}}>
-      <label>주요 주제</label>
-      <div style={{padding:'10px 14px',background:'#f7fafc',borderRadius:12,fontSize:14,color:'#1a202c',lineHeight:1.6}}>{detail.keyTopic}</div>
-    </div>
-    <div className="fg" style={{marginBottom:12}}>
-      <label>내가 말한 비율</label>
-      <div className="ratio-preview">{detail.talkRatio}% {detail.talkRatio<=20?'🏆':detail.talkRatio<=30?'👍':detail.talkRatio<=50?'⚠️':'😅'}</div>
-      <div className="prog-wrap"><div className="prog-fill" style={{width:detail.talkRatio+'%'}}/></div>
-      <div className="range-lbl"><span>5% 경청</span><span>목표 20~30%</span><span>80%</span></div>
-    </div>
-    {detail.nextAction&&<div className="fg" style={{marginBottom:12}}><label>다음 액션</label><div style={{padding:'10px 14px',background:'#f7fafc',borderRadius:12,fontSize:14,color:'#1a202c',lineHeight:1.6}}>{detail.nextAction}</div></div>}
-    {detail.memo&&<div className="fg" style={{marginBottom:12}}><label>🔒 내 메모</label><div style={{padding:'10px 14px',background:'#f7fafc',borderRadius:12,fontSize:14,color:'#1a202c',lineHeight:1.6}}>{detail.memo}</div></div>}
-    <div className="sheet-actions">
-      <button className="btn btn-ghost" onClick={()=>{onEdit(detail);setDetail(null)}}>✏️ 수정</button>
-      <button className="btn btn-danger" onClick={()=>{if(window.confirm('삭제할까요?'))onDelete(detail.id)}}>🗑 삭제</button>
-    </div>
-  </div></div>)}
+  </div>)}
 </div>);
 }
 
