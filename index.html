@@ -878,10 +878,10 @@ function App(){
           <button className="fab" onClick={()=>setScr('form')}>➕</button>
           <nav className="bnav">
             <button className={`ni ${scr==='home'?'on':''}`} onClick={()=>navTo('home')}><span className="ni-icon">🏠</span><span className="ni-lbl">홈</span></button>
-            <button className={`ni ${scr==='records'?'on':''}`} onClick={()=>navTo('records')}><span className="ni-icon">📝</span><span className="ni-lbl">기록</span></button>
-            <button className={`ni ${scr==='history'?'on':''}`} onClick={()=>navTo('history')}><span className="ni-icon">📈</span><span className="ni-lbl">성장</span></button>
-            <button className={`ni ${scr==='questions'?'on':''}`} onClick={()=>navTo('questions')}><span className="ni-icon">💡</span><span className="ni-lbl">질문</span></button>
             <button className={`ni ${scr==='guide'?'on':''}`} onClick={()=>navTo('guide')}><span className="ni-icon">📘</span><span className="ni-lbl">가이드</span></button>
+            <button className={`ni ${scr==='history'?'on':''}`} onClick={()=>navTo('history')}><span className="ni-icon">📈</span><span className="ni-lbl">성장</span></button>
+            <button className={`ni ${scr==='records'?'on':''}`} onClick={()=>navTo('records')}><span className="ni-icon">📝</span><span className="ni-lbl">기록</span></button>
+            <button className={`ni ${scr==='questions'?'on':''}`} onClick={()=>navTo('questions')}><span className="ni-icon">💡</span><span className="ni-lbl">질문</span></button>
             <button className={`ni ${scr==='troubleshoot'?'on':''}`} onClick={()=>navTo('troubleshoot')}><span className="ni-icon">🆘</span><span className="ni-lbl">위기</span></button>
             <button className={`ni ${scr==='mypage'?'on':''}`} onClick={()=>navTo('mypage')}><span className="ni-icon">⚙️</span><span className="ni-lbl">설정</span></button>
           </nav>
@@ -1516,7 +1516,7 @@ return(<div className="scr" style={{maxWidth:720,margin:'0 auto'}}>
   </div>
 
   {/* ── CTA ── */}
-  <button className="btn btn-primary" style={{marginBottom:20}} onClick={()=>nav("home")}>코칭 시작하기 →</button>
+  <button className="btn btn-primary" style={{marginBottom:20}} onClick={()=>nav("records")}>코칭 시작하기 →</button>
 </div>);
 }
 
