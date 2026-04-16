@@ -411,6 +411,56 @@ hr.div{border:none;border-top:1px solid #e2e8f0;margin:16px 0}
 .app.desktop .hdr-name{font-size:20px;font-weight:800;line-height:1.2;margin-top:2px}
 .app.desktop .hdr-sub{font-size:12px;opacity:.65;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
+/* ─── DESKTOP DASHBOARD ─── */
+.desk-dash{padding:28px 32px}
+.dd-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.dd-card{background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+.dd-label{font-size:12px;color:#718096;font-weight:500;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.dd-value{font-size:28px;font-weight:900;color:#1e3a5f;line-height:1}
+.dd-unit{font-size:14px;color:#718096;font-weight:400}
+.dd-sub{font-size:12px;font-weight:600;margin-top:6px}
+.dd-sub.good{color:#38a169}
+.dd-sub.warn{color:#dd6b20}
+.dd-sub.info{color:#3182ce}
+.dd-sub.muted{color:#a0aec0}
+.dd-prog{height:8px;background:#edf2f7;border-radius:8px;overflow:hidden;margin-top:12px}
+.dd-prog-fill{height:100%;border-radius:8px;background:linear-gradient(90deg,#4facfe,#00f2fe);transition:width .5s}
+
+.dd-question{background:linear-gradient(135deg,#1e3a5f 0%,#0a5c7d 100%);border-radius:16px;padding:24px 28px;color:#fff;margin-bottom:28px;display:flex;align-items:flex-start;gap:16px}
+.dd-q-icon{font-size:32px;flex-shrink:0;margin-top:2px}
+.dd-q-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:.6;margin-bottom:6px}
+.dd-q-text{font-size:17px;font-weight:700;line-height:1.5;margin-bottom:8px}
+.dd-q-tags{display:flex;gap:6px}
+.dd-q-tag{font-size:11px;background:rgba(255,255,255,.15);padding:3px 10px;border-radius:12px}
+
+.dd-two-col{display:grid;grid-template-columns:1.6fr 1fr;gap:20px}
+.dd-panel{background:#fff;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.05);overflow:hidden}
+.dd-panel-hdr{padding:18px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #edf2f7}
+.dd-panel-title{font-size:15px;font-weight:700;color:#1a202c}
+.dd-panel-link{font-size:12px;color:#00b4d8;font-weight:700;background:none;border:none;cursor:pointer;font-family:inherit}
+.dd-panel-link:hover{text-decoration:underline}
+
+.dd-rec-item{padding:14px 20px;display:flex;align-items:center;gap:14px;border-bottom:1px solid #f7fafc;cursor:pointer;transition:background .15s}
+.dd-rec-item:hover{background:#f7fafc}
+.dd-rec-item:last-child{border:none}
+.dd-rec-mood{font-size:22px;flex-shrink:0}
+.dd-rec-info{flex:1;min-width:0}
+.dd-rec-name{font-size:14px;font-weight:700;color:#1a202c}
+.dd-rec-topic{font-size:12px;color:#718096;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dd-rec-meta{text-align:right;flex-shrink:0}
+.dd-rec-date{font-size:12px;color:#a0aec0}
+.dd-rec-ratio{font-size:11px;font-weight:700;margin-top:3px}
+.dd-rec-ratio.good{color:#38a169}
+.dd-rec-ratio.warn{color:#dd6b20}
+
+.dd-badge-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;padding:16px 20px}
+.dd-badge{text-align:center;padding:12px 6px;border-radius:10px;background:#f7fafc;transition:transform .15s}
+.dd-badge:hover{transform:translateY(-2px)}
+.dd-badge.earned{background:#f0fff4;border:1px solid #c6f6d5}
+.dd-badge.locked{opacity:.4}
+.dd-badge-icon{font-size:24px;display:block;margin-bottom:4px}
+.dd-badge-name{font-size:10px;font-weight:700;color:#4a5568}
+
 .app.desktop .content-grid{display:grid;grid-template-columns:2fr 1fr;gap:20px}
 </style>
 </head>
@@ -729,7 +779,7 @@ function App(){
   
   let screenComp=null;
   switch(scr){
-    case'home':screenComp=<HomeScreen me={usr} records={recs} nav={navTo}/>;break;
+    case'home':screenComp=<HomeScreen me={usr} records={recs} nav={navTo} isDesktop={isDesktop}/>;break;
     case'records':screenComp=<RecordsScreen records={recs} detail={selRec} setDetail={setSelRec} onNew={()=>navTo('form')} onEdit={(r)=>{setSelRec(r);navTo('form')}} onDelete={rmRec} nav={navTo}/>;break;
     case'history':screenComp=<HistoryScreen records={recs} nav={navTo}/>;break;
     case'questions':screenComp=<QuestionsScreen nav={navTo}/>;break;
@@ -738,7 +788,7 @@ function App(){
     case'troubleshoot':screenComp=<TroubleshootScreen nav={navTo}/>;break;
     case'mypage':screenComp=<MyPage me={usr} onUpdate={updateUsr} onLogout={()=>setUsr(null)} onBack={()=>navTo('home')}/>;break;
     case'form':screenComp=<RecordForm rec={selRec} onSave={async(r)=>{const saved=await sbSaveRecord(usr.id,r);if(selRec)updRec(selRec.id,saved);else addRec(saved);setScr('records');}} onBack={()=>{setSelRec(null);setScr('records');}}/>;break;
-    default:screenComp=<HomeScreen me={usr} records={recs} nav={navTo}/>;
+    default:screenComp=<HomeScreen me={usr} records={recs} nav={navTo} isDesktop={isDesktop}/>;
   }
   
   return(
@@ -902,7 +952,7 @@ function getTarget(me){
 }
 
 /* ═══ HOME ═══ */
-function HomeScreen({me,records,nav}){
+function HomeScreen({me,records,nav,isDesktop}){
 const thisMonth=new Date().toISOString().slice(0,7);
 const mRecs=records.filter(r=>r.date.startsWith(thisMonth));
 const target=getTarget(me);
@@ -910,6 +960,106 @@ const totalAvgR=records.length?Math.round(avg(records.map(r=>r.talkRatio))):null
 const earned=BADGES.filter(b=>b.req(records)).length;
 const[quote]=useState(randomQuote);
 const[legendOpen,setLegendOpen]=useState(false);
+
+if(isDesktop){
+  const qt=todayQuestion();
+  const uniqueMembers=[...new Set(records.map(r=>r.member))].length;
+  const recentRecs=records.slice(0,5);
+
+  return(<div className="desk-dash">
+    {/* 4-column stat cards */}
+    <div className="dd-grid">
+      <div className="dd-card">
+        <div className="dd-label">📊 이번 달 1on1</div>
+        <div className="dd-value">{mRecs.length} <span className="dd-unit">/ {target}회</span></div>
+        <div className={`dd-sub ${mRecs.length>=target?'good':mRecs.length>=Math.ceil(target/2)?'warn':'muted'}`}>{target>0?Math.round(mRecs.length/target*100):0}% 달성 · 목표까지 {Math.max(0,target-mRecs.length)}회</div>
+        <div className="dd-prog"><div className="dd-prog-fill" style={{width:`${Math.min(100,target>0?mRecs.length/target*100:0)}%`}}/></div>
+      </div>
+      <div className="dd-card">
+        <div className="dd-label">🎯 평균 말하기 비율</div>
+        <div className="dd-value">{totalAvgR!=null?totalAvgR+'%':'--'}</div>
+        <div className={`dd-sub ${totalAvgR&&totalAvgR<=30?'good':'warn'}`}>{totalAvgR&&totalAvgR<=30?'목표 30% 이하 달성 중':'목표: 30% 이하'}</div>
+      </div>
+      <div className="dd-card">
+        <div className="dd-label">👥 코칭한 구성원</div>
+        <div className="dd-value">{uniqueMembers} <span className="dd-unit">/ {me.memberCount}명</span></div>
+        <div className={`dd-sub ${uniqueMembers>=me.memberCount?'good':'info'}`}>{uniqueMembers>=me.memberCount?'전원 코칭 완료':`${me.memberCount-uniqueMembers}명 남음`}</div>
+      </div>
+      <div className="dd-card">
+        <div className="dd-label">🏅 획득 배지</div>
+        <div className="dd-value">{earned} <span className="dd-unit">/ {BADGES.length}개</span></div>
+        <div className="dd-sub warn">다음 배지까지 도전 중</div>
+      </div>
+    </div>
+
+    {/* Today's question banner */}
+    <div className="dd-question">
+      <div className="dd-q-icon">💡</div>
+      <div className="dd-q-body">
+        <div className="dd-q-label">오늘의 추천 질문</div>
+        <div className="dd-q-text">"{qt.text}"</div>
+        <div className="dd-q-tags">
+          <span className="dd-q-tag">{qt.cat}</span>
+          <span className="dd-q-tag">{qt.lv}</span>
+          {qt.grow && <span className="dd-q-tag">GROW: {qt.grow}</span>}
+        </div>
+      </div>
+    </div>
+
+    {/* Two column: records + calendar/badges */}
+    <div className="dd-two-col">
+      <div className="dd-panel">
+        <div className="dd-panel-hdr">
+          <span className="dd-panel-title">최근 코칭 기록</span>
+          <button className="dd-panel-link" onClick={()=>nav('records')}>전체 보기 →</button>
+        </div>
+        {recentRecs.length===0?
+          <div style={{padding:40,textAlign:'center',color:'#a0aec0'}}>아직 기록이 없습니다. 첫 1on1을 시작해보세요!</div>
+          :recentRecs.map(r=>(
+          <div key={r.id} className="dd-rec-item">
+            <div className="dd-rec-mood">{r.mood||'😊'}</div>
+            <div className="dd-rec-info">
+              <div className="dd-rec-name">{r.member}</div>
+              <div className="dd-rec-topic">{r.keyTopic}</div>
+            </div>
+            <div className="dd-rec-meta">
+              <div className="dd-rec-date">{r.date}</div>
+              <div className={`dd-rec-ratio ${r.talkRatio<=30?'good':'warn'}`}>{r.talkRatio}%</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div>
+        {/* Badges panel */}
+        <div className="dd-panel">
+          <div className="dd-panel-hdr">
+            <span className="dd-panel-title">🏅 성장 배지 ({earned}/{BADGES.length})</span>
+            <button className="dd-panel-link" onClick={()=>nav('badges')}>전체 보기 →</button>
+          </div>
+          <div className="dd-badge-grid">
+            {BADGES.slice(0,10).map(b=>{const ok=b.req(records);return(
+              <div key={b.id} className={`dd-badge ${ok?'earned':'locked'}`}>
+                <span className="dd-badge-icon">{b.icon}</span>
+                <span className="dd-badge-name">{b.name}</span>
+              </div>
+            )})}
+          </div>
+        </div>
+        {/* Monthly progress */}
+        <div className="dd-panel" style={{marginTop:16}}>
+          <div className="dd-panel-hdr">
+            <span className="dd-panel-title">📈 이번 달 목표</span>
+            <span style={{fontSize:12,color:'#718096'}}>{mRecs.length}/{target}회</span>
+          </div>
+          <div style={{padding:'16px 20px'}}>
+            <div className="dd-prog" style={{height:10}}><div className="dd-prog-fill" style={{width:`${Math.min(100,target>0?mRecs.length/target*100:0)}%`}}/></div>
+            <div style={{fontSize:11,color:'#a0aec0',marginTop:8}}>{me.memberCount}명 × {me.level==='초급'?'1회':me.level==='중급'?'2회':'4회'} = 월 {target}회 목표</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>);
+}
 
 return(<div>
   <div className="hdr">
